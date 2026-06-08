@@ -1,0 +1,94 @@
+// Shared domain types mirroring the backend API responses.
+
+export type TransactionType = 'income' | 'expense';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Category {
+  id: number;
+  user_id: number;
+  name: string;
+  type: TransactionType;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentMethod {
+  id: number;
+  user_id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Transaction {
+  id: number;
+  user_id: number;
+  type: TransactionType;
+  amount: number;
+  category_id: number;
+  payment_method_id: number;
+  description: string;
+  transaction_date: string;
+  created_at: string;
+  updated_at: string;
+  category?: Category;
+  payment_method?: PaymentMethod;
+}
+
+export interface PaginationMeta {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface PeriodSummary {
+  income: number;
+  expense: number;
+  net: number;
+}
+
+export interface DashboardSummary {
+  total_balance: number;
+  today: PeriodSummary;
+  month: PeriodSummary;
+}
+
+export interface DailyReport {
+  date: string;
+  summary: PeriodSummary;
+  transactions: Transaction[];
+}
+
+export interface MonthlyReport {
+  month: string;
+  summary: PeriodSummary;
+  days: { date: string; summary: PeriodSummary }[];
+}
+
+// Payloads sent to the API.
+export interface TransactionPayload {
+  type: TransactionType;
+  amount: number;
+  category_id: number;
+  payment_method_id: number;
+  description: string;
+  transaction_date: string;
+}
+
+export interface TransactionFilters {
+  type?: TransactionType | '';
+  category_id?: number | '';
+  payment_method_id?: number | '';
+  date_from?: string;
+  date_to?: string;
+  page?: number;
+  page_size?: number;
+}

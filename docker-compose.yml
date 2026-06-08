@@ -1,0 +1,68 @@
+# Sumly — full stack in Docker.
+#
+# Bring up PostgreSQL, the Go backend, and the React frontend with one command:
+#
+#     docker compose up --build
+#
+# Then open http://localhost:3000
+#
+# Configuration has sensible defaults below and can be overridden via a root
+# .env file (see .env.example).
+
+services:
+  # ---- PostgreSQL ----
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-sumly}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sumly}
+      POSTGRES_DB: ${DB_NAME:-sumly}
+    volumes:
+      - sumly_pgdata:/var/lib/postgresql/data
+    ports:
+      # Exposed for convenience (e.g. connecting with a DB GUI). Safe to remove.
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-sumly} -d ${DB_NAME:-sumly}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---- Go backend API ----
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      PORT: "8080"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER:-sumly}
+      DB_PASSWORD: ${DB_PASSWORD:-sumly}
+      DB_NAME: ${DB_NAME:-sumly}
+      DB_SSLMODE: disable
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_HOURS: ${JWT_EXPIRES_HOURS:-72}
+      # The frontend is same-origin via nginx, so CORS is mostly a safety net.
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:3000}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # Exposed so you can hit the API directly during development. Optional.
+      - "${BACKEND_PORT:-8080}:8080"
+
+  # ---- React frontend (served by nginx, proxies /api to backend) ----
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+volumes:
+  sumly_pgdata:
