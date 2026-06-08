@@ -7,8 +7,10 @@ import type { DashboardSummary, Transaction } from '../types';
 import { SummaryCard } from '../components/SummaryCard';
 import { PageLoader } from '../components/Spinner';
 import { TransactionRow } from '../components/TransactionRow';
+import { useT } from '../i18n/useT';
 
 export function DashboardPage() {
+  const { t } = useT();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [recent, setRecent] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,41 +46,44 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <Link to="/transactions/new" className="btn-primary">+ Add transaction</Link>
+        <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+        <Link to="/transactions/new" className="btn-primary hidden sm:inline-flex">
+          {t('dashboard.addTransaction')}
+        </Link>
       </div>
 
       {/* Total balance highlighted on its own. */}
-      <SummaryCard label="Total balance" amount={summary.total_balance} tone="net" />
+      <SummaryCard label={t('dashboard.totalBalance')} amount={summary.total_balance} tone="net" />
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">Today</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.today')}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard label="Income" amount={summary.today.income} tone="income" />
-          <SummaryCard label="Expense" amount={summary.today.expense} tone="expense" />
-          <SummaryCard label="Net profit" amount={summary.today.net} tone="net" />
+          <SummaryCard label={t('common.income')} amount={summary.today.income} tone="income" />
+          <SummaryCard label={t('common.expense')} amount={summary.today.expense} tone="expense" />
+          <SummaryCard label={t('common.netProfit')} amount={summary.today.net} tone="net" />
         </div>
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">This month</h2>
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.thisMonth')}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard label="Income" amount={summary.month.income} tone="income" />
-          <SummaryCard label="Expense" amount={summary.month.expense} tone="expense" />
-          <SummaryCard label="Net profit" amount={summary.month.net} tone="net" />
+          <SummaryCard label={t('common.income')} amount={summary.month.income} tone="income" />
+          <SummaryCard label={t('common.expense')} amount={summary.month.expense} tone="expense" />
+          <SummaryCard label={t('common.netProfit')} amount={summary.month.net} tone="net" />
         </div>
       </section>
 
       <section>
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Recent transactions</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.recentTransactions')}</h2>
           <Link to="/transactions" className="text-sm font-medium text-brand-600 hover:underline">
-            View all
+            {t('dashboard.viewAll')}
           </Link>
         </div>
         {recent.length === 0 ? (
           <div className="card text-center text-sm text-gray-500">
-            No transactions yet. <Link to="/transactions/new" className="text-brand-600 hover:underline">Add your first one.</Link>
+            {t('dashboard.noTransactions')}{' '}
+            <Link to="/transactions/new" className="text-brand-600 hover:underline">{t('dashboard.addFirst')}</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">

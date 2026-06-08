@@ -21,7 +21,8 @@ func NewPaymentMethodHandler(payments *services.PaymentMethodService) *PaymentMe
 
 // paymentMethodRequest is the JSON body for create/update.
 type paymentMethodRequest struct {
-	Name string `json:"name" binding:"required,max=120"`
+	Name   string `json:"name" binding:"required,max=120"`
+	IsCard bool   `json:"is_card"`
 }
 
 // List handles GET /api/payment-methods.
@@ -41,7 +42,7 @@ func (h *PaymentMethodHandler) Create(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	pm, err := h.payments.Create(middleware.UserID(c), services.PaymentMethodInput{Name: req.Name})
+	pm, err := h.payments.Create(middleware.UserID(c), services.PaymentMethodInput{Name: req.Name, IsCard: req.IsCard})
 	if err != nil {
 		respondServiceError(c, err)
 		return
@@ -60,7 +61,7 @@ func (h *PaymentMethodHandler) Update(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	pm, err := h.payments.Update(middleware.UserID(c), id, services.PaymentMethodInput{Name: req.Name})
+	pm, err := h.payments.Update(middleware.UserID(c), id, services.PaymentMethodInput{Name: req.Name, IsCard: req.IsCard})
 	if err != nil {
 		respondServiceError(c, err)
 		return

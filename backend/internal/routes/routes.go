@@ -30,6 +30,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	paymentService := services.NewPaymentMethodService(paymentRepo)
 	transactionService := services.NewTransactionService(transactionRepo, categoryRepo, paymentRepo)
 	reportService := services.NewReportService(transactionRepo)
+	exportService := services.NewExportService(transactionRepo)
 
 	// Handlers (HTTP layer).
 	authHandler := handlers.NewAuthHandler(authService)
@@ -37,6 +38,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	paymentHandler := handlers.NewPaymentMethodHandler(paymentService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 	reportHandler := handlers.NewReportHandler(reportService)
+	exportHandler := handlers.NewExportHandler(exportService)
 
 	// Router.
 	if cfg.AppEnv != "development" {
@@ -75,6 +77,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 		transactions := protected.Group("/transactions")
 		{
 			transactions.GET("", transactionHandler.List)
+			// Export must be registered before the "/:id" param route.
+			transactions.GET("/export", exportHandler.Transactions)
 			transactions.POST("", transactionHandler.Create)
 			transactions.GET("/:id", transactionHandler.Get)
 			transactions.PUT("/:id", transactionHandler.Update)
@@ -102,6 +106,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 			reports.GET("/dashboard", reportHandler.Dashboard)
 			reports.GET("/daily", reportHandler.Daily)
 			reports.GET("/monthly", reportHandler.Monthly)
+			reports.GET("/monthly/export", exportHandler.Monthly)
 		}
 	}
 

@@ -23,6 +23,8 @@ export interface PaymentMethod {
   id: number;
   user_id: number;
   name: string;
+  // Card methods prompt for the card's last 4 digits on each transaction.
+  is_card: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +37,7 @@ export interface Transaction {
   category_id: number;
   payment_method_id: number;
   description: string;
+  card_last4: string;
   transaction_date: string;
   created_at: string;
   updated_at: string;
@@ -80,6 +83,7 @@ export interface TransactionPayload {
   category_id: number;
   payment_method_id: number;
   description: string;
+  card_last4?: string;
   transaction_date: string;
 }
 

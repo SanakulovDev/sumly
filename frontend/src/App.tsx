@@ -12,6 +12,7 @@ import { TransactionFormPage } from './pages/TransactionFormPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { PaymentMethodsPage } from './pages/PaymentMethodsPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 export default function App() {
   const bootstrap = useAuthStore((s) => s.bootstrap);
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/payment-methods" element={<PaymentMethodsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
       </Routes>

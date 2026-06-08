@@ -8,13 +8,16 @@ import { toast } from '../store/toastStore';
 import type { Category, PaymentMethod, TransactionPayload, TransactionType } from '../types';
 import { PageLoader, Spinner } from '../components/Spinner';
 import { todayISO } from '../utils/format';
+import { useT } from '../i18n/useT';
 
 // Shared form for creating and editing a transaction. Edit mode is detected by
-// the presence of an :id route param.
+// the presence of an :id route param. When the selected payment method is a
+// card, a "last 4 digits" field appears and becomes required.
 export function TransactionFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
+  const { t, tCategory, tPayment } = useT();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -27,6 +30,7 @@ export function TransactionFormPage() {
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [paymentMethodId, setPaymentMethodId] = useState<number | ''>('');
+  const [cardLast4, setCardLast4] = useState('');
   const [date, setDate] = useState(todayISO());
   const [description, setDescription] = useState('');
 
@@ -47,6 +51,7 @@ export function TransactionFormPage() {
           setAmount(String(tx.amount));
           setCategoryId(tx.category_id);
           setPaymentMethodId(tx.payment_method_id);
+          setCardLast4(tx.card_last4 || '');
           setDate(tx.transaction_date.slice(0, 10));
           setDescription(tx.description);
         }
@@ -67,6 +72,13 @@ export function TransactionFormPage() {
     [categories, type],
   );
 
+  // The currently selected payment method (to know whether to ask for card digits).
+  const selectedPayment = useMemo(
+    () => paymentMethods.find((p) => p.id === paymentMethodId),
+    [paymentMethods, paymentMethodId],
+  );
+  const isCard = Boolean(selectedPayment?.is_card);
+
   // When the type changes, drop a category selection that no longer applies.
   useEffect(() => {
     if (categoryId !== '' && !typeCategories.some((c) => c.id === categoryId)) {
@@ -79,7 +91,11 @@ export function TransactionFormPage() {
     setError('');
 
     if (categoryId === '' || paymentMethodId === '') {
-      setError('Please choose a category and payment method.');
+      setError(t('form.chooseCatPay'));
+      return;
+    }
+    if (isCard && !/^\d{4}$/.test(cardLast4)) {
+      setError(t('form.last4Required'));
       return;
     }
 
@@ -89,6 +105,7 @@ export function TransactionFormPage() {
       category_id: Number(categoryId),
       payment_method_id: Number(paymentMethodId),
       description: description.trim(),
+      card_last4: isCard ? cardLast4 : '',
       transaction_date: date,
     };
 
@@ -96,10 +113,10 @@ export function TransactionFormPage() {
     try {
       if (isEdit && id) {
         await transactionsApi.update(Number(id), payload);
-        toast.success('Transaction updated');
+        toast.success(t('form.updated'));
       } else {
         await transactionsApi.create(payload);
-        toast.success('Transaction added');
+        toast.success(t('form.added'));
       }
       navigate('/transactions');
     } catch (err) {
@@ -114,7 +131,7 @@ export function TransactionFormPage() {
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <h1 className="text-2xl font-bold text-gray-900">
-        {isEdit ? 'Edit transaction' : 'Add transaction'}
+        {isEdit ? t('form.editTitle') : t('form.addTitle')}
       </h1>
 
       <form onSubmit={handleSubmit} className="card space-y-4">
@@ -122,33 +139,34 @@ export function TransactionFormPage() {
 
         {/* Type toggle */}
         <div>
-          <label className="label">Type</label>
+          <label className="label">{t('transactions.type')}</label>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setType('expense')}
               className={`btn ${type === 'expense' ? 'bg-red-600 text-white' : 'btn-secondary'}`}
             >
-              Expense
+              {t('common.expense')}
             </button>
             <button
               type="button"
               onClick={() => setType('income')}
               className={`btn ${type === 'income' ? 'bg-brand-600 text-white' : 'btn-secondary'}`}
             >
-              Income
+              {t('common.income')}
             </button>
           </div>
         </div>
 
         <div>
-          <label className="label" htmlFor="amount">Amount</label>
+          <label className="label" htmlFor="amount">{t('common.amount')}</label>
           <input
             id="amount"
             type="number"
             min="0"
             step="0.01"
-            className="input"
+            inputMode="decimal"
+            className="input text-lg"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
@@ -157,7 +175,7 @@ export function TransactionFormPage() {
         </div>
 
         <div>
-          <label className="label" htmlFor="category">Category</label>
+          <label className="label" htmlFor="category">{t('transactions.category')}</label>
           <select
             id="category"
             className="input"
@@ -165,31 +183,53 @@ export function TransactionFormPage() {
             onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
             required
           >
-            <option value="">Select a category…</option>
+            <option value="">{t('form.selectCategory')}</option>
             {typeCategories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>{tCategory(c.name)}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="label" htmlFor="payment">Payment method</label>
+          <label className="label" htmlFor="payment">{t('nav.paymentMethods')}</label>
           <select
             id="payment"
             className="input"
             value={paymentMethodId}
-            onChange={(e) => setPaymentMethodId(e.target.value ? Number(e.target.value) : '')}
+            onChange={(e) => {
+              setPaymentMethodId(e.target.value ? Number(e.target.value) : '');
+              setCardLast4('');
+            }}
             required
           >
-            <option value="">Select a method…</option>
+            <option value="">{t('form.selectPayment')}</option>
             {paymentMethods.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>{tPayment(p.name)}</option>
             ))}
           </select>
         </div>
 
+        {/* Card last-4 — only for card payment methods. */}
+        {isCard && (
+          <div>
+            <label className="label" htmlFor="cardLast4">{t('form.cardLast4')}</label>
+            <input
+              id="cardLast4"
+              inputMode="numeric"
+              maxLength={4}
+              pattern="\d{4}"
+              className="input tracking-widest"
+              value={cardLast4}
+              onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              placeholder="1234"
+              required
+            />
+            <p className="mt-1 text-xs text-gray-400">{t('form.cardLast4Hint')}</p>
+          </div>
+        )}
+
         <div>
-          <label className="label" htmlFor="date">Date</label>
+          <label className="label" htmlFor="date">{t('common.date')}</label>
           <input
             id="date"
             type="date"
@@ -201,23 +241,25 @@ export function TransactionFormPage() {
         </div>
 
         <div>
-          <label className="label" htmlFor="description">Description (optional)</label>
+          <label className="label" htmlFor="description">
+            {t('common.description')} ({t('common.optional')})
+          </label>
           <input
             id="description"
             className="input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             maxLength={500}
-            placeholder="e.g. Lunch with client"
+            placeholder={t('form.descriptionPlaceholder')}
           />
         </div>
 
         <div className="flex gap-3 pt-2">
           <button type="submit" className="btn-primary flex-1" disabled={submitting}>
-            {submitting ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : 'Save'}
+            {submitting ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : t('common.save')}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
-            Cancel
+            {t('common.cancel')}
           </button>
         </div>
       </form>

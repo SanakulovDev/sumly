@@ -34,6 +34,9 @@ type transactionRequest struct {
 	CategoryID      uint                   `json:"category_id" binding:"required"`
 	PaymentMethodID uint                   `json:"payment_method_id" binding:"required"`
 	Description     string                 `json:"description" binding:"max=500"`
+	// CardLast4 is required only for card payment methods (validated server-side
+	// against the method's is_card flag).
+	CardLast4       string                 `json:"card_last4" binding:"omitempty,len=4,numeric"`
 	TransactionDate string                 `json:"transaction_date" binding:"required"`
 }
 
@@ -49,6 +52,7 @@ func (r transactionRequest) toInput() (services.TransactionInput, error) {
 		CategoryID:      r.CategoryID,
 		PaymentMethodID: r.PaymentMethodID,
 		Description:     r.Description,
+		CardLast4:       r.CardLast4,
 		TransactionDate: date.UTC(),
 	}, nil
 }

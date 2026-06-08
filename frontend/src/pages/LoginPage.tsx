@@ -4,9 +4,12 @@ import { useAuthStore } from '../store/authStore';
 import { getErrorMessage } from '../api/client';
 import { toast } from '../store/toastStore';
 import { Spinner } from '../components/Spinner';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useT } from '../i18n/useT';
 
 export function LoginPage() {
   const { user, login } = useAuthStore();
+  const { t } = useT();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +25,7 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await login(email, password);
-      toast.success('Welcome back!');
+      toast.success(t('auth.welcomeBack'));
       navigate('/');
     } catch (err) {
       setError(getErrorMessage(err));
@@ -32,11 +35,11 @@ export function LoginPage() {
   };
 
   return (
-    <AuthShell title="Sign in to Sumly" subtitle="Track your daily income and expenses">
+    <AuthShell title={t('auth.signIn')} subtitle={t('auth.signInSubtitle')}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <div>
-          <label className="label" htmlFor="email">Email</label>
+          <label className="label" htmlFor="email">{t('auth.email')}</label>
           <input
             id="email"
             type="email"
@@ -48,7 +51,7 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="label" htmlFor="password">Password</label>
+          <label className="label" htmlFor="password">{t('auth.password')}</label>
           <input
             id="password"
             type="password"
@@ -60,20 +63,20 @@ export function LoginPage() {
           />
         </div>
         <button type="submit" className="btn-primary w-full" disabled={submitting}>
-          {submitting ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : 'Sign in'}
+          {submitting ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : t('auth.signInBtn')}
         </button>
       </form>
       <p className="mt-6 text-center text-sm text-gray-600">
-        No account?{' '}
+        {t('auth.noAccount')}{' '}
         <Link to="/register" className="font-medium text-brand-600 hover:underline">
-          Create one
+          {t('auth.createOne')}
         </Link>
       </p>
     </AuthShell>
   );
 }
 
-// Shared centered card layout for the auth pages.
+// Shared centered card layout for the auth pages, with a language switcher.
 export function AuthShell({
   title,
   subtitle,
@@ -86,6 +89,9 @@ export function AuthShell({
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-sm">
+        <div className="mb-4 flex justify-end">
+          <LanguageSwitcher />
+        </div>
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">
             S

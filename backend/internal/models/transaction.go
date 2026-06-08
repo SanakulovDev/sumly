@@ -16,6 +16,9 @@ type Transaction struct {
 	CategoryID      uint            `gorm:"index;not null" json:"category_id"`
 	PaymentMethodID uint            `gorm:"index;not null" json:"payment_method_id"`
 	Description     string          `gorm:"size:500" json:"description"`
+	// CardLast4 holds the last 4 digits of the card when the payment method is
+	// card-based; empty for non-card payments (e.g. cash).
+	CardLast4       string          `gorm:"size:4" json:"card_last4"`
 	TransactionDate time.Time       `gorm:"type:date;not null;index" json:"transaction_date"`
 	CreatedAt       time.Time       `json:"created_at"`
 	UpdatedAt       time.Time       `json:"updated_at"`

@@ -10,7 +10,8 @@ import (
 
 // PaymentMethodInput is the validated payload for creating/updating a payment method.
 type PaymentMethodInput struct {
-	Name string
+	Name   string
+	IsCard bool
 }
 
 // PaymentMethodService implements payment method management.
@@ -34,7 +35,7 @@ func (s *PaymentMethodService) Create(userID uint, in PaymentMethodInput) (*mode
 	if name == "" {
 		return nil, fmt.Errorf("%w: name is required", ErrValidation)
 	}
-	pm := &models.PaymentMethod{UserID: userID, Name: name}
+	pm := &models.PaymentMethod{UserID: userID, Name: name, IsCard: in.IsCard}
 	if err := s.repo.Create(pm); err != nil {
 		return nil, err
 	}
@@ -52,6 +53,7 @@ func (s *PaymentMethodService) Update(userID, id uint, in PaymentMethodInput) (*
 		return nil, fmt.Errorf("%w: name is required", ErrValidation)
 	}
 	pm.Name = name
+	pm.IsCard = in.IsCard
 	if err := s.repo.Update(pm); err != nil {
 		return nil, err
 	}

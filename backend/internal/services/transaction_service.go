@@ -16,6 +16,7 @@ type TransactionInput struct {
 	CategoryID      uint
 	PaymentMethodID uint
 	Description     string
+	CardLast4       string
 	TransactionDate time.Time
 }
 
@@ -46,7 +47,8 @@ func NewTransactionService(
 
 // Create validates and stores a new transaction.
 func (s *TransactionService) Create(userID uint, in TransactionInput) (*models.Transaction, error) {
-	if err := s.validate(userID, in); err != nil {
+	cardLast4, err := s.validate(userID, in)
+	if err != nil {
 		return nil, err
 	}
 
@@ -57,6 +59,7 @@ func (s *TransactionService) Create(userID uint, in TransactionInput) (*models.T
 		CategoryID:      in.CategoryID,
 		PaymentMethodID: in.PaymentMethodID,
 		Description:     strings.TrimSpace(in.Description),
+		CardLast4:       cardLast4,
 		TransactionDate: in.TransactionDate,
 	}
 	if err := s.repo.Create(tx); err != nil {
@@ -81,7 +84,8 @@ func (s *TransactionService) Update(userID, id uint, in TransactionInput) (*mode
 	if err != nil {
 		return nil, mapNotFound(err)
 	}
-	if err := s.validate(userID, in); err != nil {
+	cardLast4, err := s.validate(userID, in)
+	if err != nil {
 		return nil, err
 	}
 
@@ -90,6 +94,7 @@ func (s *TransactionService) Update(userID, id uint, in TransactionInput) (*mode
 	tx.CategoryID = in.CategoryID
 	tx.PaymentMethodID = in.PaymentMethodID
 	tx.Description = strings.TrimSpace(in.Description)
+	tx.CardLast4 = cardLast4
 	tx.TransactionDate = in.TransactionDate
 
 	if err := s.repo.Update(tx); err != nil {
@@ -131,29 +136,55 @@ func (s *TransactionService) List(userID uint, f repositories.TransactionFilter)
 	}, nil
 }
 
-// validate enforces business rules: positive amount, valid type, and that the
-// referenced category/payment method belong to the user and match the type.
-func (s *TransactionService) validate(userID uint, in TransactionInput) error {
+// validate enforces business rules: positive amount, valid type, that the
+// referenced category/payment method belong to the user and match the type, and
+// that card payments carry exactly 4 numeric digits. It returns the cleaned
+// card-last-4 value to persist (empty for non-card methods).
+func (s *TransactionService) validate(userID uint, in TransactionInput) (string, error) {
 	if !in.Type.Valid() {
-		return fmt.Errorf("%w: type must be 'income' or 'expense'", ErrValidation)
+		return "", fmt.Errorf("%w: type must be 'income' or 'expense'", ErrValidation)
 	}
 	if in.Amount <= 0 {
-		return fmt.Errorf("%w: amount must be greater than zero", ErrValidation)
+		return "", fmt.Errorf("%w: amount must be greater than zero", ErrValidation)
 	}
 	if in.TransactionDate.IsZero() {
-		return fmt.Errorf("%w: transaction_date is required", ErrValidation)
+		return "", fmt.Errorf("%w: transaction_date is required", ErrValidation)
 	}
 
 	category, err := s.categories.FindByID(userID, in.CategoryID)
 	if err != nil {
-		return fmt.Errorf("%w: category not found", ErrValidation)
+		return "", fmt.Errorf("%w: category not found", ErrValidation)
 	}
 	if category.Type != in.Type {
-		return fmt.Errorf("%w: category type does not match transaction type", ErrValidation)
+		return "", fmt.Errorf("%w: category type does not match transaction type", ErrValidation)
 	}
 
-	if _, err := s.payments.FindByID(userID, in.PaymentMethodID); err != nil {
-		return fmt.Errorf("%w: payment method not found", ErrValidation)
+	payment, err := s.payments.FindByID(userID, in.PaymentMethodID)
+	if err != nil {
+		return "", fmt.Errorf("%w: payment method not found", ErrValidation)
 	}
-	return nil
+
+	// Card rule: card methods require exactly 4 digits; non-card methods never
+	// store card digits (any provided value is discarded).
+	last4 := strings.TrimSpace(in.CardLast4)
+	if payment.IsCard {
+		if !isFourDigits(last4) {
+			return "", fmt.Errorf("%w: card_last4 must be exactly 4 digits for card payments", ErrValidation)
+		}
+		return last4, nil
+	}
+	return "", nil
+}
+
+// isFourDigits reports whether s is exactly four ASCII digits.
+func isFourDigits(s string) bool {
+	if len(s) != 4 {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }

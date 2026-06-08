@@ -13,8 +13,18 @@ var (
 		"Food", "Transport", "Rent", "Salary", "Product Purchase",
 		"Utilities", "Marketing", "Other",
 	}
-	defaultPaymentMethods = []string{
-		"Cash", "Card", "Bank", "Click", "Payme", "Debt",
+	// Each default payment method with its card flag. "Card" is card-based, so
+	// transactions using it will capture the last 4 digits.
+	defaultPaymentMethods = []struct {
+		Name   string
+		IsCard bool
+	}{
+		{"Cash", false},
+		{"Card", true},
+		{"Bank", false},
+		{"Click", false},
+		{"Payme", false},
+		{"Debt", false},
 	}
 )
 
@@ -33,8 +43,8 @@ func buildSeedCategories(userID uint) []models.Category {
 // buildSeedPaymentMethods returns the default payment method models for a user.
 func buildSeedPaymentMethods(userID uint) []models.PaymentMethod {
 	pms := make([]models.PaymentMethod, 0, len(defaultPaymentMethods))
-	for _, name := range defaultPaymentMethods {
-		pms = append(pms, models.PaymentMethod{UserID: userID, Name: name})
+	for _, pm := range defaultPaymentMethods {
+		pms = append(pms, models.PaymentMethod{UserID: userID, Name: pm.Name, IsCard: pm.IsCard})
 	}
 	return pms
 }

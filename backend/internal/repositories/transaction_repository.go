@@ -100,6 +100,18 @@ func (r *TransactionRepository) List(userID uint, f TransactionFilter) ([]models
 	return txs, total, err
 }
 
+// ListAll returns every transaction matching the filter (ignoring pagination),
+// ordered newest first, with associations preloaded. Used for exports.
+func (r *TransactionRepository) ListAll(userID uint, f TransactionFilter) ([]models.Transaction, error) {
+	var txs []models.Transaction
+	err := r.scopedQuery(userID, f).
+		Preload("Category").
+		Preload("PaymentMethod").
+		Order("transaction_date desc, id desc").
+		Find(&txs).Error
+	return txs, err
+}
+
 // scopedQuery applies the user scope and all active filters to a query.
 func (r *TransactionRepository) scopedQuery(userID uint, f TransactionFilter) *gorm.DB {
 	query := r.db.Where("user_id = ?", userID)
