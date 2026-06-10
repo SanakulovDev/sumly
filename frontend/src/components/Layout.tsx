@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useT } from '../i18n/useT';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { ThemeQuickToggle } from './ThemeToggle';
 import {
   ChartIcon,
   HomeIcon,
@@ -35,7 +36,7 @@ export function Layout() {
   return (
     <div className="min-h-screen md:flex">
       {/* ---- Desktop sidebar ---- */}
-      <aside className="hidden w-60 shrink-0 border-r border-gray-200 bg-white p-4 md:block">
+      <aside className="hidden w-60 shrink-0 border-r border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 md:block">
         <Brand />
         <nav className="mt-6 space-y-1">
           {sidebarItems.map(({ to, label, icon: Icon, end }) => (
@@ -45,7 +46,9 @@ export function Layout() {
               end={end}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  isActive ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-gray-100'
+                  isActive
+                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-600/20 dark:text-brand-300'
+                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`
               }
             >
@@ -56,18 +59,22 @@ export function Layout() {
         </nav>
       </aside>
 
-      {/* ---- Mobile top bar (brand + language) ---- */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 md:hidden">
+      {/* ---- Mobile top bar (brand + theme + language) ---- */}
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 md:hidden">
         <Brand />
-        <LanguageSwitcher />
+        <div className="flex items-center gap-2">
+          <ThemeQuickToggle />
+          <LanguageSwitcher />
+        </div>
       </header>
 
       {/* ---- Main content ---- */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Desktop top bar */}
-        <div className="hidden items-center justify-end gap-4 border-b border-gray-200 bg-white px-6 py-3 md:flex">
+        <div className="hidden items-center justify-end gap-4 border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800 md:flex">
+          <ThemeQuickToggle />
           <LanguageSwitcher />
-          <span className="text-sm text-gray-600">{user?.name}</span>
+          <span className="text-sm text-gray-600 dark:text-gray-300">{user?.name}</span>
           <button className="btn-secondary" onClick={handleLogout}>
             {t('common.logout')}
           </button>
@@ -85,17 +92,17 @@ export function Layout() {
   );
 }
 
-// Bottom navigation for mobile: Dashboard · Reports · (+) Add · Settings.
+// Bottom navigation for mobile: Dashboard · Reports · (+) Add · Transactions · Settings.
 function MobileTabBar() {
   const { t } = useT();
 
   const tabClass = ({ isActive }: { isActive: boolean }) =>
     `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium ${
-      isActive ? 'text-brand-600' : 'text-gray-500'
+      isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'
     }`;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-end border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_8px_rgba(0,0,0,0.04)] md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-end border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_8px_rgba(0,0,0,0.04)] dark:border-gray-700 dark:bg-gray-800 md:hidden">
       <NavLink to="/" end className={tabClass}>
         <HomeIcon className="h-6 w-6" />
         {t('nav.dashboard')}
@@ -110,7 +117,7 @@ function MobileTabBar() {
         <NavLink
           to="/transactions/new"
           aria-label={t('nav.add')}
-          className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-white transition active:scale-95"
+          className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-white transition active:scale-95 dark:ring-gray-800"
         >
           <PlusIcon className="h-7 w-7" />
         </NavLink>
@@ -135,7 +142,7 @@ function Brand() {
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
         S
       </span>
-      <span className="text-lg font-bold tracking-tight text-gray-900">Sumly</span>
+      <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">Sumly</span>
     </div>
   );
 }

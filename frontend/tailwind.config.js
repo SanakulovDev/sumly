@@ -1,5 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  // Dark mode is toggled by a `dark` class on <html> (managed by themeStore),
+  // which lets us support an explicit Light / Dark / Auto choice.
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {

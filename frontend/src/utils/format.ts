@@ -1,12 +1,34 @@
 // Formatting helpers shared across pages.
 
-// Formats an amount as Uzbek so'm. Sumly targets the Uzbek market, so amounts
-// are whole-so'm with thousands separators and a "so'm" suffix.
-export function formatMoney(amount: number): string {
-  const formatted = new Intl.NumberFormat('uz-UZ', {
+import type { Currency } from '../types';
+
+// Formats an amount in the given currency (defaults to so'm, the base currency).
+// So'm uses a grouped number with a "so'm" suffix; foreign currencies use their
+// standard symbol via Intl with 2 decimals.
+export function formatMoney(amount: number, currency: Currency = 'UZS'): string {
+  if (currency === 'UZS') {
+    const formatted = new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 2 }).format(amount);
+    return `${formatted} so'm`;
+  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
     maximumFractionDigits: 2,
   }).format(amount);
-  return `${formatted} so'm`;
+}
+
+// Formats an amount compactly for quick-entry chips: thousands as "k",
+// millions as "mln" (e.g. 50000 -> "50k", 1500000 -> "1.5 mln").
+export function formatAmountShort(amount: number): string {
+  if (amount >= 1_000_000) {
+    const m = amount / 1_000_000;
+    return `${Number.isInteger(m) ? m : m.toFixed(1)} mln`;
+  }
+  if (amount >= 1_000) {
+    const k = amount / 1_000;
+    return `${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+  }
+  return String(amount);
 }
 
 // Returns today's date as YYYY-MM-DD (local), used as a default form value.

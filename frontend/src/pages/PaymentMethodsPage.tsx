@@ -65,7 +65,7 @@ export function PaymentMethodsPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">{t('paymentMethods.title')}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('paymentMethods.title')}</h1>
 
       <form onSubmit={handleCreate} className="card space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -101,11 +101,11 @@ export function PaymentMethodsPage() {
           {methods.length === 0 ? (
             <p className="text-sm text-gray-400">{t('paymentMethods.none')}</p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-gray-100 dark:divide-gray-700">
               {methods.map((pm) => (
                 <li key={pm.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                   <span className="flex items-center gap-2">
-                    <span className="text-gray-800">{tPayment(pm.name)}</span>
+                    <span className="text-gray-800 dark:text-gray-200">{tPayment(pm.name)}</span>
                     {pm.is_card && (
                       <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
                         {t('paymentMethods.cardBadge')}

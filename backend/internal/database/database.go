@@ -55,5 +55,15 @@ func Migrate(db *gorm.DB) error {
 	); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}
+
+	// Backfill currency fields for rows created before multi-currency support:
+	// treat existing amounts as base-currency (UZS) so historical totals stay
+	// correct. Safe to run repeatedly.
+	if err := db.Exec("UPDATE transactions SET currency = 'UZS' WHERE currency IS NULL OR currency = ''").Error; err != nil {
+		return fmt.Errorf("backfill currency: %w", err)
+	}
+	if err := db.Exec("UPDATE transactions SET amount_base = amount WHERE amount_base = 0 OR amount_base IS NULL").Error; err != nil {
+		return fmt.Errorf("backfill amount_base: %w", err)
+	}
 	return nil
 }

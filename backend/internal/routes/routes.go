@@ -25,10 +25,11 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	transactionRepo := repositories.NewTransactionRepository(db)
 
 	// Services (business logic).
+	currencyService := services.NewCurrencyService()
 	authService := services.NewAuthService(db, userRepo, categoryRepo, paymentRepo, cfg.JWTSecret, cfg.JWTExpiresIn)
 	categoryService := services.NewCategoryService(categoryRepo)
 	paymentService := services.NewPaymentMethodService(paymentRepo)
-	transactionService := services.NewTransactionService(transactionRepo, categoryRepo, paymentRepo)
+	transactionService := services.NewTransactionService(transactionRepo, categoryRepo, paymentRepo, currencyService)
 	reportService := services.NewReportService(transactionRepo)
 	exportService := services.NewExportService(transactionRepo)
 
@@ -39,6 +40,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 	reportHandler := handlers.NewReportHandler(reportService)
 	exportHandler := handlers.NewExportHandler(exportService)
+	currencyHandler := handlers.NewCurrencyHandler(currencyService)
 
 	// Router.
 	if cfg.AppEnv != "development" {
@@ -77,8 +79,9 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 		transactions := protected.Group("/transactions")
 		{
 			transactions.GET("", transactionHandler.List)
-			// Export must be registered before the "/:id" param route.
+			// Static sub-paths must be registered before the "/:id" param route.
 			transactions.GET("/export", exportHandler.Transactions)
+			transactions.GET("/top-amounts", transactionHandler.TopAmounts)
 			transactions.POST("", transactionHandler.Create)
 			transactions.GET("/:id", transactionHandler.Get)
 			transactions.PUT("/:id", transactionHandler.Update)
@@ -100,6 +103,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 			paymentMethods.PUT("/:id", paymentHandler.Update)
 			paymentMethods.DELETE("/:id", paymentHandler.Delete)
 		}
+
+		protected.GET("/currency/rates", currencyHandler.Rates)
 
 		reports := protected.Group("/reports")
 		{

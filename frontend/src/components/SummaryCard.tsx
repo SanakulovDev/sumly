@@ -8,16 +8,16 @@ interface SummaryCardProps {
 }
 
 const toneClasses: Record<NonNullable<SummaryCardProps['tone']>, string> = {
-  neutral: 'text-gray-900',
-  income: 'text-brand-600',
-  expense: 'text-red-600',
-  net: 'text-gray-900',
+  neutral: 'text-gray-900 dark:text-gray-100',
+  income: 'text-brand-600 dark:text-brand-400',
+  expense: 'text-red-600 dark:text-red-400',
+  net: 'text-gray-900 dark:text-gray-100',
 };
 
 // A single dashboard metric card.
 export function SummaryCard({ label, amount, tone = 'neutral' }: SummaryCardProps) {
   // Net figures are colored by sign for an at-a-glance read.
-  const netTone = amount >= 0 ? 'text-brand-600' : 'text-red-600';
+  const netTone = amount >= 0 ? 'text-brand-600 dark:text-brand-400' : 'text-red-600 dark:text-red-400';
   const valueClass = tone === 'net' ? netTone : toneClasses[tone];
 
   return (

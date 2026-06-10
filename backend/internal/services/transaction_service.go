@@ -13,6 +13,7 @@ import (
 type TransactionInput struct {
 	Type            models.TransactionType
 	Amount          float64
+	Currency        string
 	CategoryID      uint
 	PaymentMethodID uint
 	Description     string
@@ -34,6 +35,7 @@ type TransactionService struct {
 	repo       *repositories.TransactionRepository
 	categories *repositories.CategoryRepository
 	payments   *repositories.PaymentMethodRepository
+	currency   *CurrencyService
 }
 
 // NewTransactionService constructs a TransactionService.
@@ -41,8 +43,9 @@ func NewTransactionService(
 	repo *repositories.TransactionRepository,
 	categories *repositories.CategoryRepository,
 	payments *repositories.PaymentMethodRepository,
+	currency *CurrencyService,
 ) *TransactionService {
-	return &TransactionService{repo: repo, categories: categories, payments: payments}
+	return &TransactionService{repo: repo, categories: categories, payments: payments, currency: currency}
 }
 
 // Create validates and stores a new transaction.
@@ -51,11 +54,17 @@ func (s *TransactionService) Create(userID uint, in TransactionInput) (*models.T
 	if err != nil {
 		return nil, err
 	}
+	currency, err := s.normalizeCurrency(in.Currency)
+	if err != nil {
+		return nil, err
+	}
 
 	tx := &models.Transaction{
 		UserID:          userID,
 		Type:            in.Type,
 		Amount:          in.Amount,
+		Currency:        currency,
+		AmountBase:      s.currency.ConvertToBase(in.Amount, currency),
 		CategoryID:      in.CategoryID,
 		PaymentMethodID: in.PaymentMethodID,
 		Description:     strings.TrimSpace(in.Description),
@@ -88,9 +97,15 @@ func (s *TransactionService) Update(userID, id uint, in TransactionInput) (*mode
 	if err != nil {
 		return nil, err
 	}
+	currency, err := s.normalizeCurrency(in.Currency)
+	if err != nil {
+		return nil, err
+	}
 
 	tx.Type = in.Type
 	tx.Amount = in.Amount
+	tx.Currency = currency
+	tx.AmountBase = s.currency.ConvertToBase(in.Amount, currency)
 	tx.CategoryID = in.CategoryID
 	tx.PaymentMethodID = in.PaymentMethodID
 	tx.Description = strings.TrimSpace(in.Description)
@@ -136,6 +151,23 @@ func (s *TransactionService) List(userID uint, f repositories.TransactionFilter)
 	}, nil
 }
 
+// TopAmounts returns up to `limit` of the user's most frequently used amounts,
+// optionally scoped to a transaction type. Invalid types are ignored (treated
+// as "all"), so the caller never gets an error for a bad query param.
+func (s *TransactionService) TopAmounts(userID uint, txType models.TransactionType, currency string, limit int) ([]float64, error) {
+	if !txType.Valid() {
+		txType = ""
+	}
+	currency = strings.ToUpper(strings.TrimSpace(currency))
+	if !IsSupported(currency) {
+		currency = ""
+	}
+	if limit < 1 || limit > 10 {
+		limit = 6
+	}
+	return s.repo.TopAmounts(userID, txType, currency, limit)
+}
+
 // validate enforces business rules: positive amount, valid type, that the
 // referenced category/payment method belong to the user and match the type, and
 // that card payments carry exactly 4 numeric digits. It returns the cleaned
@@ -174,6 +206,19 @@ func (s *TransactionService) validate(userID uint, in TransactionInput) (string,
 		return last4, nil
 	}
 	return "", nil
+}
+
+// normalizeCurrency upper-cases and validates the currency, defaulting to the
+// base currency when empty.
+func (s *TransactionService) normalizeCurrency(currency string) (string, error) {
+	c := strings.ToUpper(strings.TrimSpace(currency))
+	if c == "" {
+		c = BaseCurrency
+	}
+	if !IsSupported(c) {
+		return "", fmt.Errorf("%w: unsupported currency", ErrValidation)
+	}
+	return c, nil
 }
 
 // isFourDigits reports whether s is exactly four ASCII digits.

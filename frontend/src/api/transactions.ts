@@ -4,6 +4,7 @@ import type {
   Transaction,
   TransactionFilters,
   TransactionPayload,
+  TransactionType,
 } from '../types';
 
 // Builds a query string from filters, omitting empty values.
@@ -27,6 +28,17 @@ export const transactionsApi = {
 
   get: (id: number) =>
     api.get<{ data: Transaction }>(`/api/transactions/${id}`).then((r) => r.data.data),
+
+  // The user's most frequently used amounts (for quick-entry chips), optionally
+  // scoped to a transaction type and currency.
+  topAmounts: (type?: TransactionType, currency?: string) => {
+    const params: Record<string, string> = {};
+    if (type) params.type = type;
+    if (currency) params.currency = currency;
+    return api
+      .get<{ data: number[] }>('/api/transactions/top-amounts', { params })
+      .then((r) => r.data.data ?? []);
+  },
 
   create: (payload: TransactionPayload) =>
     api.post<{ data: Transaction }>('/api/transactions', payload).then((r) => r.data.data),

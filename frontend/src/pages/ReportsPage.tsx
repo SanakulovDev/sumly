@@ -18,9 +18,9 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">{t('reports.title')}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('reports.title')}</h1>
 
-      <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+      <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-700 dark:bg-gray-800">
         <TabButton active={tab === 'daily'} onClick={() => setTab('daily')}>{t('reports.daily')}</TabButton>
         <TabButton active={tab === 'monthly'} onClick={() => setTab('monthly')}>{t('reports.monthly')}</TabButton>
       </div>
@@ -43,7 +43,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${
-        active ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100'
+        active ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
       }`}
     >
       {children}
@@ -97,7 +97,7 @@ function DailyReportView() {
             {report.transactions.length === 0 ? (
               <div className="card text-center text-sm text-gray-500">{t('reports.noTransactionsDay')}</div>
             ) : (
-              <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+              <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
                 {report.transactions.map((tx) => (
                   <TransactionRow key={tx.id} tx={tx} />
                 ))}
@@ -174,9 +174,9 @@ function MonthlyReportView() {
             {report.days.length === 0 ? (
               <div className="card text-center text-sm text-gray-500">{t('reports.noActivity')}</div>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+              <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <table className="w-full min-w-[480px] text-sm">
-                  <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                  <thead className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-900/40 dark:text-gray-400">
                     <tr>
                       <th className="px-4 py-2 font-medium">{t('common.date')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('common.income')}</th>
@@ -184,10 +184,10 @@ function MonthlyReportView() {
                       <th className="px-4 py-2 text-right font-medium">{t('common.net')}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {report.days.map((d) => (
                       <tr key={d.date}>
-                        <td className="px-4 py-2 text-gray-700">{formatDate(d.date)}</td>
+                        <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{formatDate(d.date)}</td>
                         <td className="px-4 py-2 text-right text-brand-600">{formatMoney(d.summary.income)}</td>
                         <td className="px-4 py-2 text-right text-red-600">{formatMoney(d.summary.expense)}</td>
                         <td className={`px-4 py-2 text-right font-medium ${d.summary.net >= 0 ? 'text-brand-600' : 'text-red-600'}`}>

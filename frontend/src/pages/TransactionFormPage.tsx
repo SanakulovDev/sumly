@@ -5,8 +5,9 @@ import { categoriesApi } from '../api/categories';
 import { paymentMethodsApi } from '../api/paymentMethods';
 import { getErrorMessage } from '../api/client';
 import { toast } from '../store/toastStore';
-import type { Category, PaymentMethod, TransactionPayload, TransactionType } from '../types';
+import type { Category, Currency, PaymentMethod, TransactionPayload, TransactionType } from '../types';
 import { PageLoader, Spinner } from '../components/Spinner';
+import { AmountField } from '../components/AmountField';
 import { todayISO } from '../utils/format';
 import { useT } from '../i18n/useT';
 
@@ -28,6 +29,7 @@ export function TransactionFormPage() {
   // Form state.
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
+  const [currency, setCurrency] = useState<Currency>('UZS');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [paymentMethodId, setPaymentMethodId] = useState<number | ''>('');
   const [cardLast4, setCardLast4] = useState('');
@@ -49,6 +51,7 @@ export function TransactionFormPage() {
           if (!active) return;
           setType(tx.type);
           setAmount(String(tx.amount));
+          setCurrency(tx.currency);
           setCategoryId(tx.category_id);
           setPaymentMethodId(tx.payment_method_id);
           setCardLast4(tx.card_last4 || '');
@@ -102,6 +105,7 @@ export function TransactionFormPage() {
     const payload: TransactionPayload = {
       type,
       amount: Number(amount),
+      currency,
       category_id: Number(categoryId),
       payment_method_id: Number(paymentMethodId),
       description: description.trim(),
@@ -130,49 +134,54 @@ export function TransactionFormPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
         {isEdit ? t('form.editTitle') : t('form.addTitle')}
       </h1>
 
       <form onSubmit={handleSubmit} className="card space-y-4">
-        {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">
+            {error}
+          </p>
+        )}
 
-        {/* Type toggle */}
+        {/* Type toggle — a segmented pill with directional arrows. */}
         <div>
           <label className="label">{t('transactions.type')}</label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-gray-100 p-1 dark:bg-gray-700/40">
             <button
               type="button"
               onClick={() => setType('expense')}
-              className={`btn ${type === 'expense' ? 'bg-red-600 text-white' : 'btn-secondary'}`}
+              className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
+                type === 'expense'
+                  ? 'bg-red-600 text-white shadow'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
-              {t('common.expense')}
+              ↓ {t('common.expense')}
             </button>
             <button
               type="button"
               onClick={() => setType('income')}
-              className={`btn ${type === 'income' ? 'bg-brand-600 text-white' : 'btn-secondary'}`}
+              className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition ${
+                type === 'income'
+                  ? 'bg-brand-600 text-white shadow'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
-              {t('common.income')}
+              ↑ {t('common.income')}
             </button>
           </div>
         </div>
 
-        <div>
-          <label className="label" htmlFor="amount">{t('common.amount')}</label>
-          <input
-            id="amount"
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            className="input text-lg"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            placeholder="0"
-          />
-        </div>
+        {/* Amount with currency, live preview + quick-amount chips. */}
+        <AmountField
+          amount={amount}
+          setAmount={setAmount}
+          type={type}
+          currency={currency}
+          setCurrency={setCurrency}
+        />
 
         <div>
           <label className="label" htmlFor="category">{t('transactions.category')}</label>

@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     user_id           BIGINT         NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     type              VARCHAR(10)    NOT NULL,
     amount            NUMERIC(14, 2) NOT NULL,
+    currency          VARCHAR(3)     NOT NULL DEFAULT 'UZS',
+    amount_base       NUMERIC(16, 2) NOT NULL DEFAULT 0,
     category_id       BIGINT         NOT NULL REFERENCES categories (id),
     payment_method_id BIGINT         NOT NULL REFERENCES payment_methods (id),
     description       VARCHAR(500),

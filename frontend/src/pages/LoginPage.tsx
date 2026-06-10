@@ -5,6 +5,7 @@ import { getErrorMessage } from '../api/client';
 import { toast } from '../store/toastStore';
 import { Spinner } from '../components/Spinner';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { ThemeQuickToggle } from '../components/ThemeToggle';
 import { useT } from '../i18n/useT';
 
 export function LoginPage() {
@@ -87,17 +88,18 @@ export function AuthShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 dark:bg-gray-900">
       <div className="w-full max-w-sm">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <ThemeQuickToggle />
           <LanguageSwitcher />
         </div>
         <div className="mb-6 text-center">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">
             S
           </div>
-          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-          <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
         </div>
         <div className="card">{children}</div>
       </div>

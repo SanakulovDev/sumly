@@ -2,6 +2,12 @@
 
 export type TransactionType = 'income' | 'expense';
 
+// Currencies a transaction can be recorded in. UZS (so'm) is the base currency
+// that balances and reports are consolidated into.
+export type Currency = 'UZS' | 'USD' | 'EUR' | 'RUB';
+
+export const CURRENCIES: Currency[] = ['UZS', 'USD', 'EUR', 'RUB'];
+
 export interface User {
   id: number;
   name: string;
@@ -34,6 +40,8 @@ export interface Transaction {
   user_id: number;
   type: TransactionType;
   amount: number;
+  currency: Currency;
+  amount_base: number;
   category_id: number;
   payment_method_id: number;
   description: string;
@@ -80,11 +88,19 @@ export interface MonthlyReport {
 export interface TransactionPayload {
   type: TransactionType;
   amount: number;
+  currency: Currency;
   category_id: number;
   payment_method_id: number;
   description: string;
   card_last4?: string;
   transaction_date: string;
+}
+
+// Response of GET /api/currency/rates: "base per 1 unit" for each currency.
+export interface CurrencyRates {
+  base: Currency;
+  currencies: Currency[];
+  rates: Record<Currency, number>;
 }
 
 export interface TransactionFilters {

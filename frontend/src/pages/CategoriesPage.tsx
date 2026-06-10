@@ -59,7 +59,7 @@ export function CategoriesPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-gray-900">{t('categories.title')}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('categories.title')}</h1>
 
       {/* Add form */}
       <form onSubmit={handleCreate} className="card flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -120,10 +120,10 @@ function CategoryColumn({
       {items.length === 0 ? (
         <p className="text-sm text-gray-400">{empty}</p>
       ) : (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-gray-100 dark:divide-gray-700">
           {items.map((c) => (
             <li key={c.id} className="flex items-center justify-between py-2 text-sm">
-              <span className="text-gray-800">{tName(c.name)}</span>
+              <span className="text-gray-800 dark:text-gray-200">{tName(c.name)}</span>
               <button
                 onClick={() => onDelete(c)}
                 className="text-xs font-medium text-red-500 hover:text-red-700"

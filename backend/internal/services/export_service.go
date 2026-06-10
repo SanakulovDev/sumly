@@ -24,7 +24,8 @@ func NewExportService(transactions *repositories.TransactionRepository) *ExportS
 
 // transactionColumns is the shared header row for transaction sheets.
 var transactionColumns = []string{
-	"Date", "Type", "Category", "Payment Method", "Card Last 4", "Amount", "Description",
+	"Date", "Type", "Category", "Payment Method", "Card Last 4",
+	"Amount", "Currency", "Amount (UZS)", "Description",
 }
 
 // TransactionsXLSX returns an .xlsx file of all transactions matching the
@@ -126,9 +127,9 @@ func (s *ExportService) writeTransactionSheet(file *excelize.File, sheet string,
 		header[i] = c
 	}
 	file.SetSheetRow(sheet, "A1", &header)
-	file.SetCellStyle(sheet, "A1", "G1", headerStyle)
-	file.SetColWidth(sheet, "A", "G", 16)
-	file.SetColWidth(sheet, "G", "G", 30)
+	file.SetCellStyle(sheet, "A1", "I1", headerStyle)
+	file.SetColWidth(sheet, "A", "I", 15)
+	file.SetColWidth(sheet, "I", "I", 30)
 
 	for i, tx := range txs {
 		row := i + 2
@@ -147,6 +148,8 @@ func (s *ExportService) writeTransactionSheet(file *excelize.File, sheet string,
 			paymentName,
 			tx.CardLast4,
 			tx.Amount,
+			tx.Currency,
+			tx.AmountBase,
 			tx.Description,
 		})
 	}

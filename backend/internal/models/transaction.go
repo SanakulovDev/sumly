@@ -13,6 +13,12 @@ type Transaction struct {
 	UserID          uint            `gorm:"index;not null" json:"user_id"`
 	Type            TransactionType `gorm:"size:10;not null;index" json:"type"`
 	Amount          float64         `gorm:"type:numeric(14,2);not null" json:"amount"`
+	// Currency is the ISO code the amount was entered in (UZS, USD, EUR, RUB).
+	Currency        string          `gorm:"size:3;not null;default:UZS" json:"currency"`
+	// AmountBase is Amount converted to the base currency (UZS) at entry time,
+	// using the exchange rate then. Reports and balances sum this field so totals
+	// are consistent across currencies.
+	AmountBase      float64         `gorm:"type:numeric(16,2);not null;default:0" json:"amount_base"`
 	CategoryID      uint            `gorm:"index;not null" json:"category_id"`
 	PaymentMethodID uint            `gorm:"index;not null" json:"payment_method_id"`
 	Description     string          `gorm:"size:500" json:"description"`

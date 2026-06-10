@@ -134,6 +134,28 @@ func (r *TransactionRepository) scopedQuery(userID uint, f TransactionFilter) *g
 	return query
 }
 
+// TopAmounts returns the user's most frequently used transaction amounts,
+// optionally filtered by type, ordered by how often each amount appears. Used to
+// suggest quick-amount chips on the entry form.
+func (r *TransactionRepository) TopAmounts(userID uint, txType models.TransactionType, currency string, limit int) ([]float64, error) {
+	query := r.db.Model(&models.Transaction{}).Where("user_id = ?", userID)
+	if txType != "" {
+		query = query.Where("type = ?", txType)
+	}
+	if currency != "" {
+		query = query.Where("currency = ?", currency)
+	}
+
+	var amounts []float64
+	err := query.
+		Select("amount").
+		Group("amount").
+		Order("COUNT(*) DESC, amount DESC").
+		Limit(limit).
+		Pluck("amount", &amounts).Error
+	return amounts, err
+}
+
 // TotalsBetween aggregates income and expense for the user across the inclusive
 // date range [from, to].
 func (r *TransactionRepository) TotalsBetween(userID uint, from, to time.Time) (Totals, error) {
@@ -154,9 +176,11 @@ func (r *TransactionRepository) totals(query *gorm.DB) (Totals, error) {
 		Total float64
 	}
 	var rows []row
+	// Sum the base-currency amount so income/expense totals are consistent even
+	// when transactions are recorded in different currencies.
 	err := query.
 		Model(&models.Transaction{}).
-		Select("type, COALESCE(SUM(amount), 0) AS total").
+		Select("type, COALESCE(SUM(amount_base), 0) AS total").
 		Group("type").
 		Scan(&rows).Error
 	if err != nil {

@@ -105,7 +105,7 @@ export function TransactionsPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold text-gray-900">{t('transactions.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('transactions.title')}</h1>
         <div className="flex items-center gap-2">
           <button className="btn-secondary" onClick={handleExport} disabled={exporting}>
             {exporting ? t('transactions.exporting') : t('transactions.exportExcel')}
@@ -187,7 +187,7 @@ export function TransactionsPage() {
       ) : items.length === 0 ? (
         <div className="card text-center text-sm text-gray-500">{t('transactions.noMatch')}</div>
       ) : (
-        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
           {items.map((tx) => (
             <TransactionRow key={tx.id} tx={tx} onDelete={handleDelete} />
           ))}

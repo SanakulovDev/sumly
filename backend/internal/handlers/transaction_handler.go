@@ -31,6 +31,7 @@ func NewTransactionHandler(transactions *services.TransactionService) *Transacti
 type transactionRequest struct {
 	Type            models.TransactionType `json:"type" binding:"required,oneof=income expense"`
 	Amount          float64                `json:"amount" binding:"required,gt=0"`
+	Currency        string                 `json:"currency" binding:"omitempty,oneof=UZS USD EUR RUB"`
 	CategoryID      uint                   `json:"category_id" binding:"required"`
 	PaymentMethodID uint                   `json:"payment_method_id" binding:"required"`
 	Description     string                 `json:"description" binding:"max=500"`
@@ -49,6 +50,7 @@ func (r transactionRequest) toInput() (services.TransactionInput, error) {
 	return services.TransactionInput{
 		Type:            r.Type,
 		Amount:          r.Amount,
+		Currency:        r.Currency,
 		CategoryID:      r.CategoryID,
 		PaymentMethodID: r.PaymentMethodID,
 		Description:     r.Description,
@@ -126,6 +128,21 @@ func (h *TransactionHandler) Delete(c *gin.Context) {
 		return
 	}
 	utils.OK(c, gin.H{"deleted": true})
+}
+
+// TopAmounts handles GET /api/transactions/top-amounts?type=income|expense.
+// Returns the user's most frequently used amounts to power quick-entry chips.
+func (h *TransactionHandler) TopAmounts(c *gin.Context) {
+	txType := models.TransactionType(c.Query("type"))
+	amounts, err := h.transactions.TopAmounts(middleware.UserID(c), txType, c.Query("currency"), 6)
+	if err != nil {
+		respondServiceError(c, err)
+		return
+	}
+	if amounts == nil {
+		amounts = []float64{}
+	}
+	utils.OK(c, amounts)
 }
 
 // List handles GET /api/transactions with filtering and pagination.

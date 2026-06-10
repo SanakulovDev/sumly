@@ -7,6 +7,7 @@ import type { DashboardSummary, Transaction } from '../types';
 import { SummaryCard } from '../components/SummaryCard';
 import { PageLoader } from '../components/Spinner';
 import { TransactionRow } from '../components/TransactionRow';
+import { formatMoney } from '../utils/format';
 import { useT } from '../i18n/useT';
 
 export function DashboardPage() {
@@ -46,14 +47,21 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
         <Link to="/transactions/new" className="btn-primary hidden sm:inline-flex">
           {t('dashboard.addTransaction')}
         </Link>
       </div>
 
-      {/* Total balance highlighted on its own. */}
-      <SummaryCard label={t('dashboard.totalBalance')} amount={summary.total_balance} tone="net" />
+      {/* Total balance — a brand gradient hero so it's the first thing you see. */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-700 p-6 text-white shadow-lg">
+        <div className="absolute -right-6 -top-8 h-32 w-32 rounded-full bg-white/10" />
+        <div className="absolute -bottom-10 -left-4 h-28 w-28 rounded-full bg-white/5" />
+        <p className="text-sm font-medium text-brand-50">{t('dashboard.totalBalance')}</p>
+        <p className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">
+          {formatMoney(summary.total_balance)}
+        </p>
+      </div>
 
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.today')}</h2>
@@ -86,7 +94,7 @@ export function DashboardPage() {
             <Link to="/transactions/new" className="text-brand-600 hover:underline">{t('dashboard.addFirst')}</Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
             {recent.map((tx) => (
               <TransactionRow key={tx.id} tx={tx} />
             ))}

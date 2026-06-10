@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useT } from '../i18n/useT';
 import { LanguageSegmented } from '../components/LanguageSwitcher';
+import { ThemeSegmented } from '../components/ThemeToggle';
 import { TagIcon, CardIcon } from '../components/icons';
 
 // Settings hub — the entry point on mobile for everything that isn't a daily
@@ -18,11 +19,17 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('settings.title')}</h1>
+
+      {/* Appearance (light / dark / auto) */}
+      <section className="card space-y-3">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200">{t('settings.theme')}</h2>
+        <ThemeSegmented />
+      </section>
 
       {/* Language */}
       <section className="card space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700">{t('settings.language')}</h2>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200">{t('settings.language')}</h2>
         <LanguageSegmented />
       </section>
 
@@ -31,21 +38,21 @@ export function SettingsPage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
           {t('settings.manage')}
         </h2>
-        <Link to="/categories" className="card flex items-center gap-4 hover:bg-gray-50">
+        <Link to="/categories" className="card flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
             <TagIcon className="h-5 w-5" />
           </span>
           <span className="min-w-0">
-            <span className="block font-medium text-gray-900">{t('nav.categories')}</span>
+            <span className="block font-medium text-gray-900 dark:text-gray-100">{t('nav.categories')}</span>
             <span className="block text-sm text-gray-500">{t('settings.categoriesDesc')}</span>
           </span>
         </Link>
-        <Link to="/payment-methods" className="card flex items-center gap-4 hover:bg-gray-50">
+        <Link to="/payment-methods" className="card flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
             <CardIcon className="h-5 w-5" />
           </span>
           <span className="min-w-0">
-            <span className="block font-medium text-gray-900">{t('nav.paymentMethods')}</span>
+            <span className="block font-medium text-gray-900 dark:text-gray-100">{t('nav.paymentMethods')}</span>
             <span className="block text-sm text-gray-500">{t('settings.paymentsDesc')}</span>
           </span>
         </Link>
@@ -54,8 +61,8 @@ export function SettingsPage() {
       {/* Account */}
       <section className="card space-y-3">
         <h2 className="text-sm font-semibold text-gray-700">{t('settings.account')}</h2>
-        <div className="text-sm text-gray-600">
-          <p className="font-medium text-gray-900">{user?.name}</p>
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="font-medium text-gray-900 dark:text-gray-100">{user?.name}</p>
           <p>{user?.email}</p>
         </div>
         <button className="btn-danger w-full sm:w-auto" onClick={handleLogout}>
