@@ -5,6 +5,7 @@ import { getErrorMessage } from '../api/client';
 import { toast } from '../store/toastStore';
 import { Spinner } from '../components/Spinner';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { Logo } from '../components/Logo';
 import { useT } from '../i18n/useT';
 
 export function LoginPage() {
@@ -51,7 +52,12 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <label className="label" htmlFor="password">{t('auth.password')}</label>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="label mb-0" htmlFor="password">{t('auth.password')}</label>
+            <Link to="/forgot-password" className="text-xs font-medium text-brand-600 hover:underline">
+              {t('auth.forgotPassword')}
+            </Link>
+          </div>
           <input
             id="password"
             type="password"
@@ -93,9 +99,7 @@ export function AuthShell({
           <LanguageSwitcher />
         </div>
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-teal-600 text-xl font-bold text-white shadow-lifted">
-            S
-          </div>
+          <Logo className="mx-auto mb-3 h-16 w-16 drop-shadow-lg" />
           <h1 className="text-xl font-bold text-slate-900">{title}</h1>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>

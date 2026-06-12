@@ -9,6 +9,7 @@ import {
   PlusIcon,
   SettingsIcon,
 } from './icons';
+import { Logo } from './Logo';
 
 // App shell: a sidebar on desktop and a bottom tab bar on mobile. The center
 // "+" tab is an elevated Add button for fast, one-tap entry — the primary
@@ -134,9 +135,7 @@ function MobileTabBar() {
 function Brand() {
   return (
     <div className="flex items-center gap-2">
-      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-teal-600 text-sm font-bold text-white shadow-sm">
-        S
-      </span>
+      <Logo className="h-8 w-8" />
       <span className="text-lg font-bold tracking-tight text-slate-900">Sumly</span>
     </div>
   );

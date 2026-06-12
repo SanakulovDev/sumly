@@ -49,6 +49,7 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 func Migrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(
 		&models.User{},
+		&models.PasswordResetToken{},
 		&models.Category{},
 		&models.PaymentMethod{},
 		&models.Transaction{},

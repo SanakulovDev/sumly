@@ -20,12 +20,14 @@ import (
 func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	// Repositories (data-access layer).
 	userRepo := repositories.NewUserRepository(db)
+	resetRepo := repositories.NewPasswordResetRepository(db)
 	categoryRepo := repositories.NewCategoryRepository(db)
 	paymentRepo := repositories.NewPaymentMethodRepository(db)
 	transactionRepo := repositories.NewTransactionRepository(db)
 
 	// Services (business logic).
-	authService := services.NewAuthService(db, userRepo, categoryRepo, paymentRepo, cfg.JWTSecret, cfg.JWTExpiresIn)
+	mailer := services.NewMailer(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPassword, cfg.SMTPFrom)
+	authService := services.NewAuthService(db, userRepo, resetRepo, categoryRepo, paymentRepo, mailer, cfg.AppURL, cfg.JWTSecret, cfg.JWTExpiresIn)
 	categoryService := services.NewCategoryService(categoryRepo)
 	paymentService := services.NewPaymentMethodService(paymentRepo)
 	transactionService := services.NewTransactionService(transactionRepo, categoryRepo, paymentRepo)
@@ -33,7 +35,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	exportService := services.NewExportService(transactionRepo)
 
 	// Handlers (HTTP layer).
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, cfg.AppEnv == "development")
 	categoryHandler := handlers.NewCategoryHandler(categoryService)
 	paymentHandler := handlers.NewPaymentMethodHandler(paymentService)
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
@@ -66,6 +68,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	{
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
+		auth.POST("/forgot-password", authHandler.ForgotPassword)
+		auth.POST("/reset-password", authHandler.ResetPassword)
 	}
 
 	// Protected routes (require a valid JWT).
@@ -73,6 +77,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	protected.Use(middleware.Auth(cfg.JWTSecret))
 	{
 		protected.GET("/auth/me", authHandler.Me)
+		protected.POST("/auth/change-password", authHandler.ChangePassword)
 
 		transactions := protected.Group("/transactions")
 		{

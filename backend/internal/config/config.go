@@ -27,6 +27,17 @@ type Config struct {
 	JWTExpiresIn time.Duration
 
 	CORSAllowOrigins string
+
+	// Public URL of the frontend, used to build password reset links.
+	AppURL string
+
+	// SMTP settings for transactional email. When SMTPHost is empty the mailer
+	// logs messages instead of sending them (handy for local development).
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUser     string
+	SMTPPassword string
+	SMTPFrom     string
 }
 
 // Load reads configuration from the environment. It optionally loads a .env
@@ -53,6 +64,14 @@ func Load() *Config {
 		JWTExpiresIn: time.Duration(jwtExpiresHours) * time.Hour,
 
 		CORSAllowOrigins: getEnv("CORS_ALLOW_ORIGINS", "http://localhost:5173"),
+
+		AppURL: getEnv("APP_URL", "http://localhost:5173"),
+
+		SMTPHost:     getEnv("SMTP_HOST", ""),
+		SMTPPort:     getEnv("SMTP_PORT", "587"),
+		SMTPUser:     getEnv("SMTP_USER", ""),
+		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+		SMTPFrom:     getEnv("SMTP_FROM", "Sumly <no-reply@sumly.uz>"),
 	}
 }
 
