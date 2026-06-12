@@ -33,6 +33,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	transactionService := services.NewTransactionService(transactionRepo, categoryRepo, paymentRepo)
 	reportService := services.NewReportService(transactionRepo)
 	exportService := services.NewExportService(transactionRepo)
+	scannerService := services.NewReceiptScannerService(categoryRepo, cfg.AnthropicAPIKey, cfg.ClaudeModel)
 
 	// Handlers (HTTP layer).
 	authHandler := handlers.NewAuthHandler(authService, cfg.AppEnv == "development")
@@ -41,6 +42,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 	reportHandler := handlers.NewReportHandler(reportService)
 	exportHandler := handlers.NewExportHandler(exportService)
+	scanHandler := handlers.NewScanHandler(scannerService)
 
 	// Router.
 	if cfg.AppEnv != "development" {
@@ -84,6 +86,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 			transactions.GET("", transactionHandler.List)
 			// Export must be registered before the "/:id" param route.
 			transactions.GET("/export", exportHandler.Transactions)
+			transactions.POST("/scan-receipt", scanHandler.Receipt)
 			transactions.POST("", transactionHandler.Create)
 			transactions.GET("/:id", transactionHandler.Get)
 			transactions.PUT("/:id", transactionHandler.Update)

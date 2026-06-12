@@ -1,16 +1,22 @@
+import { useId } from 'react';
+
 // The Sumly logomark: an emerald→teal gradient coin tile carrying a flowing
-// "S" with a currency-style bar through it — money (so'm) in motion. Drawn
-// inline so it scales crisply at any size with no asset request.
+// "S" — money (so'm) in motion. Drawn inline so it scales crisply at any size
+// with no asset request.
 
 interface LogoProps {
   className?: string;
 }
 
 export function Logo({ className }: LogoProps) {
+  // Unique per instance: a shared gradient id breaks when the first instance
+  // sits in a hidden container (e.g. the desktop sidebar on mobile).
+  const gradientId = `sumly-tile-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+
   return (
     <svg className={className} viewBox="0 0 48 48" fill="none" aria-label="Sumly">
       <defs>
-        <linearGradient id="sumly-tile" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradientId} x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
           <stop stopColor="#10b981" />
           <stop offset="0.55" stopColor="#0d9488" />
           <stop offset="1" stopColor="#0e7490" />
@@ -18,7 +24,7 @@ export function Logo({ className }: LogoProps) {
       </defs>
 
       {/* Coin tile */}
-      <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#sumly-tile)" />
+      <rect x="2" y="2" width="44" height="44" rx="14" fill={`url(#${gradientId})`} />
       {/* Inner ring gives it a minted-coin depth */}
       <rect x="5.5" y="5.5" width="37" height="37" rx="11" stroke="white" strokeOpacity="0.18" strokeWidth="1.5" />
 

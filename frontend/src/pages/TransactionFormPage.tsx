@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { transactionsApi } from '../api/transactions';
 import { categoriesApi } from '../api/categories';
@@ -7,7 +7,7 @@ import { getErrorMessage } from '../api/client';
 import { toast } from '../store/toastStore';
 import type { Category, PaymentMethod, TransactionPayload, TransactionType } from '../types';
 import { PageLoader, Spinner } from '../components/Spinner';
-import { CardIcon } from '../components/icons';
+import { CameraIcon, CardIcon } from '../components/icons';
 import { formatMoney, todayISO, yesterdayISO } from '../utils/format';
 import { useT } from '../i18n/useT';
 
@@ -40,13 +40,15 @@ export function TransactionFormPage() {
   const isEdit = Boolean(id);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { t, tCategory, tPayment } = useT();
+  const { t, tCategory, tPayment, lang } = useT();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [error, setError] = useState('');
+  const scanInputRef = useRef<HTMLInputElement>(null);
 
   // Form state. The dashboard quick buttons preset the type via ?type=.
   const paramType = searchParams.get('type');
@@ -136,6 +138,32 @@ export function TransactionFormPage() {
 
   const addQuickAmount = (value: number) => setAmount(String(amountNumber + value));
 
+  // Receipt scanner: extract amount/date/description/category from a photo and
+  // pre-fill the form. Nothing is saved until the user confirms with Save.
+  const handleScanFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setScanning(true);
+    setError('');
+    try {
+      const scan = await transactionsApi.scanReceipt(file, lang);
+      setAmount(String(scan.amount));
+      if (scan.date) setDate(scan.date);
+      const desc = [scan.merchant, scan.description].filter(Boolean).join(' — ');
+      if (desc) setDescription(desc.slice(0, 500));
+      if (scan.category_id && categories.some((c) => c.id === scan.category_id)) {
+        setCategoryId(scan.category_id);
+      }
+      toast.success(t('form.scanned'));
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setScanning(false);
+    }
+  };
+
   const save = async (stay: boolean) => {
     setError('');
 
@@ -222,6 +250,35 @@ export function TransactionFormPage() {
             {t('common.income')}
           </button>
         </div>
+
+        {/* Receipt scanner — photographs a payment receipt and pre-fills the
+            expense from it. Only shown when adding an expense. */}
+        {!isEdit && isExpense && (
+          <div>
+            <input
+              ref={scanInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleScanFile}
+            />
+            <button
+              type="button"
+              onClick={() => scanInputRef.current?.click()}
+              disabled={scanning}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/60 px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 active:scale-[0.99] disabled:opacity-60"
+            >
+              {scanning ? (
+                <Spinner className="h-4 w-4 border-brand-300 border-t-brand-600" />
+              ) : (
+                <CameraIcon className="h-5 w-5" />
+              )}
+              {scanning ? t('form.scanning') : t('form.scanReceipt')}
+            </button>
+            <p className="mt-1 text-xs text-slate-400">{t('form.scanHint')}</p>
+          </div>
+        )}
 
         {/* Amount with quick-add chips and a live formatted preview. */}
         <div>

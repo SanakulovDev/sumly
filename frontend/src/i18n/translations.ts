@@ -120,6 +120,10 @@ const en = {
     added: 'Transaction added',
     updated: 'Transaction updated',
     saveAndNew: 'Save & add another',
+    scanReceipt: 'Scan receipt',
+    scanning: 'Reading receipt…',
+    scanned: 'Receipt scanned — review and confirm',
+    scanHint: 'Upload a photo of the payment receipt — amount and description fill in automatically.',
   },
   categories: {
     title: 'Categories',
@@ -295,6 +299,10 @@ const ru: Dictionary = {
     added: 'Операция добавлена',
     updated: 'Операция обновлена',
     saveAndNew: 'Сохранить и добавить ещё',
+    scanReceipt: 'Сканировать чек',
+    scanning: 'Чтение чека…',
+    scanned: 'Чек распознан — проверьте данные и подтвердите',
+    scanHint: 'Загрузите фото чека — сумма и описание заполнятся автоматически.',
   },
   categories: {
     title: 'Категории',
@@ -466,6 +474,10 @@ const uz: Dictionary = {
     added: "Amal qo'shildi",
     updated: 'Amal yangilandi',
     saveAndNew: "Saqlash va yana qo'shish",
+    scanReceipt: 'Chekni skanerlash',
+    scanning: "Chek o'qilmoqda…",
+    scanned: "Chek o'qildi — ma'lumotlarni tekshirib tasdiqlang",
+    scanHint: "To'lov cheki rasmini yuklang — summa va izoh avtomatik to'ladi.",
   },
   categories: {
     title: 'Kategoriyalar',

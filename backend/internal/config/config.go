@@ -38,6 +38,10 @@ type Config struct {
 	SMTPUser     string
 	SMTPPassword string
 	SMTPFrom     string
+
+	// Claude API settings for the receipt scanner. An empty key disables it.
+	AnthropicAPIKey string
+	ClaudeModel     string
 }
 
 // Load reads configuration from the environment. It optionally loads a .env
@@ -72,6 +76,9 @@ func Load() *Config {
 		SMTPUser:     getEnv("SMTP_USER", ""),
 		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
 		SMTPFrom:     getEnv("SMTP_FROM", "Sumly <no-reply@sumly.uz>"),
+
+		AnthropicAPIKey: getEnv("ANTHROPIC_API_KEY", ""),
+		ClaudeModel:     getEnv("CLAUDE_MODEL", "claude-opus-4-8"),
 	}
 }
 
