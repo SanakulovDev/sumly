@@ -8,7 +8,12 @@ import { useT } from '../i18n/useT';
 import { AuthShell } from './LoginPage';
 
 // Set a new password using the single-use token from the emailed reset link
-// (?token=...). On success the user is sent back to the login page.
+/**
+ * Renders a reset password page that reads a single-use `token` from the URL, accepts and validates a new password,
+ * submits the reset request, and navigates to the login page on success.
+ *
+ * @returns A React element containing the reset password form, inline error display, submission state handling, and a link back to the login page.
+ */
 export function ResetPasswordPage() {
   const { t } = useT();
   const navigate = useNavigate();

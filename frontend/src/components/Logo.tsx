@@ -8,6 +8,12 @@ interface LogoProps {
   className?: string;
 }
 
+/**
+ * Renders the Sumly logomark as an inline SVG, using a per-instance unique gradient id to avoid id collisions.
+ *
+ * @param className - Optional CSS class applied to the root `<svg>` element
+ * @returns The SVG element for the Sumly logo
+ */
 export function Logo({ className }: LogoProps) {
   // Unique per instance: a shared gradient id breaks when the first instance
   // sits in a hidden container (e.g. the desktop sidebar on mobile).

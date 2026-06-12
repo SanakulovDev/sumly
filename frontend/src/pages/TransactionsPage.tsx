@@ -27,6 +27,15 @@ const emptyFilters: TransactionFilters = {
   page_size: 20,
 };
 
+/**
+ * Render the transactions listing page with filter controls, export/delete actions, and pagination.
+ *
+ * Displays transaction rows, filter inputs (type, category, payment method, date range), export and add buttons,
+ * and pagination controls. Handles loading and error states, fetches filter option lists on mount, and
+ * re-fetches transactions when filters change.
+ *
+ * @returns The JSX element for the Transactions page.
+ */
 export function TransactionsPage() {
   const { t, tCategory, tPayment } = useT();
   const [filters, setFilters] = useState<TransactionFilters>(emptyFilters);

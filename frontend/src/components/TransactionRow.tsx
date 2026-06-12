@@ -11,7 +11,13 @@ interface TransactionRowProps {
 }
 
 // A single transaction line: a direction badge, category, payment method (with
-// card last-4 when present), date, and a signed, color-coded amount.
+/**
+ * Render a single transaction row showing direction, category, payment method (with optional card last‑4), date, optional description, a signed color-coded amount, and optional edit/delete actions.
+ *
+ * @param tx - The transaction to display
+ * @param onDelete - Optional callback invoked with `tx` when the delete action is triggered; when provided, edit and delete controls are shown
+ * @returns A JSX element representing the transaction row
+ */
 export function TransactionRow({ tx, onDelete }: TransactionRowProps) {
   const { t, tCategory, tPayment } = useT();
   const isIncome = tx.type === 'income';

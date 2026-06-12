@@ -8,6 +8,13 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { Logo } from '../components/Logo';
 import { useT } from '../i18n/useT';
 
+/**
+ * Renders the sign-in page and manages the authentication flow for users.
+ *
+ * Renders a controlled email/password form, displays validation/error feedback, disables the submit button while a login attempt is in progress, and redirects to the app root if the user is already signed in. On successful sign-in it shows a success toast and navigates to `/`; on failure it captures and displays the error message.
+ *
+ * @returns The login page React element.
+ */
 export function LoginPage() {
   const { user, login } = useAuthStore();
   const { t } = useT();
@@ -82,7 +89,14 @@ export function LoginPage() {
   );
 }
 
-// Shared centered card layout for the auth pages, with a language switcher.
+/**
+ * Centered authentication page layout that displays branding, a language switcher, and page content.
+ *
+ * @param title - Heading text displayed above the card
+ * @param subtitle - Subheading text displayed under the heading
+ * @param children - Content rendered inside the centered card (e.g., sign-in form)
+ * @returns A React element containing the auth shell with logo, language switcher, title, subtitle, and the provided children
+ */
 export function AuthShell({
   title,
   subtitle,

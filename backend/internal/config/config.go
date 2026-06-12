@@ -46,7 +46,9 @@ type Config struct {
 
 // Load reads configuration from the environment. It optionally loads a .env
 // file first (useful for local development); in production the variables are
-// expected to be set by the host environment.
+// Load loads configuration from environment variables, attempting a best-effort read of a local `.env` file, and constructs a *Config populated with sensible defaults.
+// 
+// Environment-derived values that are absent or empty fall back to predefined defaults (for example APP_ENV="development", PORT="8080", DB_HOST="localhost", etc.). The `JWT_EXPIRES_HOURS` variable is parsed as hours to set `JWTExpiresIn`; parsing failures fall back to the default of 72 hours. A missing `.env` file is ignored.
 func Load() *Config {
 	// Best-effort load of .env. Missing file is not an error.
 	_ = godotenv.Load()

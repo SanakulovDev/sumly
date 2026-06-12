@@ -16,7 +16,14 @@ const tones = {
   net: { value: 'text-slate-900', chip: 'bg-slate-100 text-slate-600', Icon: WalletIcon },
 } as const;
 
-// A single dashboard metric card.
+/**
+ * Render a compact dashboard metric card that displays a label, a tone-specific icon chip, and a formatted monetary amount.
+ *
+ * @param label - Short label displayed above the amount
+ * @param amount - Numeric value to format and display; used to determine sign-based coloring when `tone` is `"net"`
+ * @param tone - Visual tone for the card; one of `"neutral" | "income" | "expense" | "net"` (defaults to `"neutral"`)
+ * @returns A JSX element representing the metric card
+ */
 export function SummaryCard({ label, amount, tone = 'neutral' }: SummaryCardProps) {
   const { chip, Icon } = tones[tone];
   // Net figures are colored by sign for an at-a-glance read.

@@ -17,7 +17,7 @@ type Mailer struct {
 	from     string
 }
 
-// NewMailer constructs a Mailer. An empty host enables the log-only fallback.
+// If host is empty, the Mailer will use a log-only fallback and will not attempt SMTP delivery.
 func NewMailer(host, port, username, password, from string) *Mailer {
 	return &Mailer{host: host, port: port, username: username, password: password, from: from}
 }

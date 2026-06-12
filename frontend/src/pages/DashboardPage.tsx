@@ -11,6 +11,15 @@ import { ArrowDownIcon, ArrowUpIcon } from '../components/icons';
 import { formatMoney } from '../utils/format';
 import { useT } from '../i18n/useT';
 
+/**
+ * Renders the dashboard page with the account total, summary cards, and recent transactions.
+ *
+ * Fetches the dashboard summary and the latest transactions on mount and displays a loader,
+ * error message, or the full dashboard UI (hero total balance with quick actions, today and
+ * month summaries, and a recent transactions list).
+ *
+ * @returns The dashboard page JSX element showing loader, error, or the dashboard UI.
+ */
 export function DashboardPage() {
   const { t } = useT();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);

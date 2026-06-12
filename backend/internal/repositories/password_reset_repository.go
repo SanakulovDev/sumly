@@ -13,7 +13,7 @@ type PasswordResetRepository struct {
 	db *gorm.DB
 }
 
-// NewPasswordResetRepository constructs a PasswordResetRepository.
+// NewPasswordResetRepository returns a PasswordResetRepository backed by the provided *gorm.DB.
 func NewPasswordResetRepository(db *gorm.DB) *PasswordResetRepository {
 	return &PasswordResetRepository{db: db}
 }

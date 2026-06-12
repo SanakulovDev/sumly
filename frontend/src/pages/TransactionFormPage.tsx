@@ -19,6 +19,12 @@ const QUICK_AMOUNTS = [1_000, 5_000, 10_000, 50_000, 100_000];
 // entries (the common case) need zero extra taps.
 const lastChoiceKey = (type: TransactionType) => `sumly:lastChoice:${type}`;
 
+/**
+ * Retrieves the remembered category and payment method IDs for the given transaction type from localStorage.
+ *
+ * @param type - The transaction type whose remembered selection to load
+ * @returns An object containing `categoryId` and/or `paymentMethodId` when present; returns an empty object if no remembered selection exists or the stored value cannot be parsed
+ */
 function loadLastChoice(type: TransactionType): { categoryId?: number; paymentMethodId?: number } {
   try {
     return JSON.parse(localStorage.getItem(lastChoiceKey(type)) || '{}');
@@ -27,6 +33,13 @@ function loadLastChoice(type: TransactionType): { categoryId?: number; paymentMe
   }
 }
 
+/**
+ * Persist the last selected category and payment method for a transaction type in localStorage.
+ *
+ * @param type - The transaction type (e.g., 'expense' or 'income') for which to remember the selection
+ * @param categoryId - The selected category's numeric ID
+ * @param paymentMethodId - The selected payment method's numeric ID
+ */
 function saveLastChoice(type: TransactionType, categoryId: number, paymentMethodId: number) {
   localStorage.setItem(lastChoiceKey(type), JSON.stringify({ categoryId, paymentMethodId }));
 }
@@ -34,7 +47,19 @@ function saveLastChoice(type: TransactionType, categoryId: number, paymentMethod
 // Shared form for creating and editing a transaction. Edit mode is detected by
 // the presence of an :id route param. When the selected payment method is a
 // card, a "last 4 digits" field appears and becomes required. Categories and
-// payment methods are one-tap chips rather than dropdowns.
+/**
+ * Page component for creating and editing transactions with quick-entry UX and remembered defaults.
+ *
+ * Renders a form that supports add and edit modes (edit when an `:id` route param is present), including:
+ * - type toggle (expense/income) with per-type remembered category/payment defaults,
+ * - amount entry with quick-add chips and live formatted preview,
+ * - category and payment method selection via one-tap chips (card methods prompt for last 4 digits),
+ * - optional receipt scanning (add-mode expenses) that pre-fills amount/date/description/category,
+ * - date picker with Today/Yesterday shortcuts, and
+ * - save flows for create/update (with optional "Save and New" behavior).
+ *
+ * @returns A JSX element rendering the transaction form page.
+ */
 export function TransactionFormPage() {
   const { id } = useParams();
   const isEdit = Boolean(id);

@@ -38,7 +38,8 @@ type ReceiptScannerService struct {
 }
 
 // NewReceiptScannerService constructs a ReceiptScannerService. An empty apiKey
-// disables scanning (the handler reports it as unconfigured).
+// NewReceiptScannerService creates a ReceiptScannerService using the provided category repository, Anthropic API key, and model.
+// If model is empty, it defaults to anthropic.ModelClaudeOpus4_8. If apiKey is empty, scanning will be disabled via Enabled().
 func NewReceiptScannerService(categories *repositories.CategoryRepository, apiKey, model string) *ReceiptScannerService {
 	if model == "" {
 		model = string(anthropic.ModelClaudeOpus4_8)
