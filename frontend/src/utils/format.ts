@@ -9,17 +9,29 @@ export function formatMoney(amount: number): string {
   return `${formatted} so'm`;
 }
 
-// Returns today's date as YYYY-MM-DD (local), used as a default form value.
+/**
+ * Get the current local date in `YYYY-MM-DD` format.
+ *
+ * @returns The current date as a string formatted `YYYY-MM-DD`.
+ */
 export function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// Returns yesterday's date as YYYY-MM-DD, used by the quick date chips.
+/**
+ * Get yesterday's date in YYYY-MM-DD format.
+ *
+ * @returns The ISO date string for yesterday in `YYYY-MM-DD` form.
+ */
 export function yesterdayISO(): string {
   return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-// Returns the current month as YYYY-MM.
+/**
+ * Get the current month in `YYYY-MM` format.
+ *
+ * @returns The current month as `YYYY-MM` (year and two-digit month)
+ */
 export function currentMonth(): string {
   return new Date().toISOString().slice(0, 7);
 }

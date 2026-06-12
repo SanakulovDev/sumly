@@ -6,7 +6,12 @@ import type {
   TransactionPayload,
 } from '../types';
 
-// Builds a query string from filters, omitting empty values.
+/**
+ * Convert filter values into a string-keyed object suitable for use as query parameters, omitting keys whose values are `undefined`, `null`, or the empty string.
+ *
+ * @param filters - Filter entries to include as query parameters; keys with `undefined`, `null`, or `''` are excluded
+ * @returns An object mapping filter keys to their stringified values
+ */
 function toParams(filters: TransactionFilters): Record<string, string> {
   const params: Record<string, string> = {};
   Object.entries(filters).forEach(([key, value]) => {

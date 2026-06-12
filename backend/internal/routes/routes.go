@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Setup constructs the dependency graph and returns a configured Gin engine.
+// - /api/reports: /dashboard, /daily, /monthly and /monthly/export
 func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	// Repositories (data-access layer).
 	userRepo := repositories.NewUserRepository(db)

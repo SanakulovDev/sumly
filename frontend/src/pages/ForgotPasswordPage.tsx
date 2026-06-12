@@ -8,7 +8,13 @@ import { AuthShell } from './LoginPage';
 
 // Forgot-password: ask for the account email and trigger a reset link. The
 // response is identical whether or not the email exists. In development the
-// API returns the token directly, so a "continue" link is offered for testing.
+/**
+ * Render the forgot-password page that collects an email, requests a password reset, and displays a confirmation view with an optional development "continue" link when a reset token is returned.
+ *
+ * The component shows a form for entering an email, disables the submit button and shows a spinner while the request is in progress, displays a user-facing error message on failure, and shows a confirmation screen on success with links to continue (when a token is available) and to go back to login.
+ *
+ * @returns The JSX element for the Forgot Password page.
+ */
 export function ForgotPasswordPage() {
   const { t } = useT();
   const [email, setEmail] = useState('');

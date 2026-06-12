@@ -18,7 +18,7 @@ type AuthHandler struct {
 	devMode bool
 }
 
-// NewAuthHandler constructs an AuthHandler.
+// When devMode is true, the handler will expose password reset tokens in forgot-password responses.
 func NewAuthHandler(auth *services.AuthService, devMode bool) *AuthHandler {
 	return &AuthHandler{auth: auth, devMode: devMode}
 }

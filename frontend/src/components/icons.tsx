@@ -62,6 +62,12 @@ export function TagIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders a card-shaped SVG icon.
+ *
+ * @param className - Optional CSS class names added to the icon's root element
+ * @returns An SVG element depicting a rounded-rectangle card with a horizontal divider near the top
+ */
 export function CardIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -71,6 +77,12 @@ export function CardIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders an upward-pointing arrow icon as an inline SVG.
+ *
+ * @param className - Optional additional CSS classes appended to the base icon sizing/color classes
+ * @returns A JSX element containing the SVG for an upward-pointing arrow
+ */
 export function ArrowUpIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -80,6 +92,12 @@ export function ArrowUpIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders an SVG downward arrow icon sized for UI controls.
+ *
+ * @param className - Optional additional CSS classes appended to the icon's base sizing classes
+ * @returns An SVG element depicting a downward-pointing arrow
+ */
 export function ArrowDownIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -89,6 +107,12 @@ export function ArrowDownIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders a wallet-shaped SVG icon.
+ *
+ * @param className - Additional CSS class names (typically Tailwind) appended to the default `h-6 w-6` sizing classes
+ * @returns The wallet icon SVG element
+ */
 export function WalletIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -99,6 +123,12 @@ export function WalletIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders a pencil (edit) icon as an inline SVG.
+ *
+ * @param className - Additional CSS classes applied to the SVG, typically used to control size and color
+ * @returns The SVG element for a pencil icon
+ */
 export function PencilIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -107,6 +137,12 @@ export function PencilIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders a camera SVG icon.
+ *
+ * @param className - Additional CSS classes applied to the SVG element (typically Tailwind classes for size and color)
+ * @returns The SVG element representing a camera icon
+ */
 export function CameraIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -116,6 +152,12 @@ export function CameraIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders a trash (delete) icon as an inline SVG.
+ *
+ * @param className - Optional additional CSS classes to merge with the base `h-6 w-6` sizing and color classes
+ * @returns A JSX element containing the trash icon SVG with the composed `className`
+ */
 export function TrashIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

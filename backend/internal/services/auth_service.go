@@ -50,7 +50,10 @@ type AuthService struct {
 	jwtExpiresIn time.Duration
 }
 
-// NewAuthService constructs an AuthService.
+// NewAuthService creates and returns an AuthService configured with the given
+// database, repositories, mailer, application URL, and JWT settings. It wires
+// the user, password-reset, category, and payment repositories along with the
+// mailer and JWT configuration into the service.
 func NewAuthService(
 	db *gorm.DB,
 	users *repositories.UserRepository,
@@ -230,7 +233,7 @@ func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword s
 	return s.resets.InvalidateForUser(user.ID)
 }
 
-// hashResetToken returns the hex SHA-256 of a plain reset token.
+// hashResetToken returns the hex-encoded SHA-256 digest of the provided reset token.
 func hashResetToken(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])

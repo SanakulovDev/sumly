@@ -10,7 +10,12 @@ import { Spinner } from '../components/Spinner';
 import { TagIcon, CardIcon } from '../components/icons';
 
 // Settings hub — the entry point on mobile for everything that isn't a daily
-// action: managing categories & payment methods, switching language, account.
+/**
+ * Renders the user settings hub including language selection, management links,
+ * a password change section, and account information with logout.
+ *
+ * @returns A JSX element containing the settings page UI
+ */
 export function SettingsPage() {
   const { user, logout } = useAuthStore();
   const { t } = useT();
@@ -74,7 +79,14 @@ export function SettingsPage() {
   );
 }
 
-// Change the password of the signed-in account (current + new password).
+/**
+ * Renders the account security section that lets the signed-in user change their password.
+ *
+ * Submits the current and new password to the authentication API, shows a success or error toast,
+ * clears the inputs on success, and disables the submit button while the request is in progress.
+ *
+ * @returns A JSX element containing the change-password form and controls
+ */
 function ChangePasswordSection() {
   const { t } = useT();
   const [current, setCurrent] = useState('');

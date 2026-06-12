@@ -16,6 +16,14 @@ import { PaymentMethodsPage } from './pages/PaymentMethodsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
+/**
+ * Initializes application-level authentication and renders the root router and global UI.
+ *
+ * The component triggers authentication bootstrap on mount, renders a global Toaster, and
+ * configures public and protected application routes with shared layout for authenticated pages.
+ *
+ * @returns The root React element for the application containing routing and global UI.
+ */
 export default function App() {
   const bootstrap = useAuthStore((s) => s.bootstrap);
 

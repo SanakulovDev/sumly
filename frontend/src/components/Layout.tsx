@@ -13,7 +13,13 @@ import { Logo } from './Logo';
 
 // App shell: a sidebar on desktop and a bottom tab bar on mobile. The center
 // "+" tab is an elevated Add button for fast, one-tap entry — the primary
-// action in a daily-use finance app.
+/**
+ * Renders the application shell with responsive navigation and content areas.
+ *
+ * The layout provides a desktop sidebar, a mobile header, a shared main content area that renders route children via `<Outlet />`, and a mobile bottom tab bar. It also exposes a logout control that calls the auth store's `logout` and navigates to `/login`.
+ *
+ * @returns The layout JSX element containing navigation, header, main content, and the mobile tab bar
+ */
 export function Layout() {
   const { user, logout } = useAuthStore();
   const { t } = useT();
@@ -88,7 +94,13 @@ export function Layout() {
   );
 }
 
-// Bottom navigation for mobile: Dashboard · Reports · (+) Add · Settings.
+/**
+ * Render the fixed mobile bottom navigation with tabs for Dashboard, Reports, a central elevated Add action, Transactions, and Settings.
+ *
+ * The tab labels are localized via the translation hook; the Add button is visually elevated, has an `aria-label`, and the whole bar is hidden on medium and larger viewports.
+ *
+ * @returns The navigation bar JSX element for mobile bottom-tabs.
+ */
 function MobileTabBar() {
   const { t } = useT();
 
@@ -131,7 +143,11 @@ function MobileTabBar() {
   );
 }
 
-// Sumly wordmark used in the header/sidebar.
+/**
+ * Renders the Sumly wordmark used in the app header and sidebar.
+ *
+ * @returns A JSX element containing the `Logo` icon and the "Sumly" text
+ */
 function Brand() {
   return (
     <div className="flex items-center gap-2">
