@@ -45,10 +45,15 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 }
 
 // Migrate creates or updates the database schema to match the Go models.
-// GORM's AutoMigrate is idempotent and safe to run on every boot.
+// Migrate runs GORM automatic schema migration for the application's models.
+// It applies AutoMigrate for models.User, models.PasswordResetToken, models.Category,
+// models.PaymentMethod, and models.Transaction; the operation is idempotent and safe
+// to run on every boot.
+// It returns an error if the migration fails.
 func Migrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(
 		&models.User{},
+		&models.PasswordResetToken{},
 		&models.Category{},
 		&models.PaymentMethod{},
 		&models.Transaction{},

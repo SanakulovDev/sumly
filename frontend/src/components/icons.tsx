@@ -88,11 +88,109 @@ export function AutoThemeIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * Renders a card-shaped SVG icon.
+ *
+ * @param className - Optional CSS class names added to the icon's root element
+ * @returns An SVG element depicting a rounded-rectangle card with a horizontal divider near the top
+ */
 export function CardIcon({ className }: IconProps) {
   return (
     <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="5" width="20" height="14" rx="2" />
       <path d="M2 10h20" />
+    </svg>
+  );
+}
+
+/**
+ * Renders an upward-pointing arrow icon as an inline SVG.
+ *
+ * @param className - Optional additional CSS classes appended to the base icon sizing/color classes
+ * @returns A JSX element containing the SVG for an upward-pointing arrow
+ */
+export function ArrowUpIcon({ className }: IconProps) {
+  return (
+    <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 19V5" />
+      <path d="m5 12 7-7 7 7" />
+    </svg>
+  );
+}
+
+/**
+ * Renders an SVG downward arrow icon sized for UI controls.
+ *
+ * @param className - Optional additional CSS classes appended to the icon's base sizing classes
+ * @returns An SVG element depicting a downward-pointing arrow
+ */
+export function ArrowDownIcon({ className }: IconProps) {
+  return (
+    <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 5v14" />
+      <path d="m19 12-7 7-7-7" />
+    </svg>
+  );
+}
+
+/**
+ * Renders a wallet-shaped SVG icon.
+ *
+ * @param className - Additional CSS class names (typically Tailwind) appended to the default `h-6 w-6` sizing classes
+ * @returns The wallet icon SVG element
+ */
+export function WalletIcon({ className }: IconProps) {
+  return (
+    <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 7H5a2 2 0 0 1-2-2 2 2 0 0 1 2-2h13v4" />
+      <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1" />
+      <circle cx="16.5" cy="14" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/**
+ * Renders a pencil (edit) icon as an inline SVG.
+ *
+ * @param className - Additional CSS classes applied to the SVG, typically used to control size and color
+ * @returns The SVG element for a pencil icon
+ */
+export function PencilIcon({ className }: IconProps) {
+  return (
+    <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+    </svg>
+  );
+}
+
+/**
+ * Renders a camera SVG icon.
+ *
+ * @param className - Additional CSS classes applied to the SVG element (typically Tailwind classes for size and color)
+ * @returns The SVG element representing a camera icon
+ */
+export function CameraIcon({ className }: IconProps) {
+  return (
+    <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+      <circle cx="12" cy="13" r="3" />
+    </svg>
+  );
+}
+
+/**
+ * Renders a trash (delete) icon as an inline SVG.
+ *
+ * @param className - Optional additional CSS classes to merge with the base `h-6 w-6` sizing and color classes
+ * @returns A JSX element containing the trash icon SVG with the composed `className`
+ */
+export function TrashIcon({ className }: IconProps) {
+  return (
+    <svg className={base(className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M10 11v6M14 11v6" />
     </svg>
   );
 }

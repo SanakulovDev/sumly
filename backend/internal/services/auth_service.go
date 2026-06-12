@@ -1,6 +1,9 @@
 package services
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +13,9 @@ import (
 	"github.com/sumly/backend/internal/utils"
 	"gorm.io/gorm"
 )
+
+// resetTokenTTL is how long a password reset link stays valid.
+const resetTokenTTL = time.Hour
 
 // RegisterInput is the validated payload for user registration.
 type RegisterInput struct {
@@ -30,30 +36,43 @@ type AuthResult struct {
 	User  *models.User `json:"user"`
 }
 
-// AuthService implements registration, login and the seeding of default data.
+// AuthService implements registration, login, password recovery and the
+// seeding of default data.
 type AuthService struct {
 	db           *gorm.DB
 	users        *repositories.UserRepository
+	resets       *repositories.PasswordResetRepository
 	categories   *repositories.CategoryRepository
 	payments     *repositories.PaymentMethodRepository
+	mailer       *Mailer
+	appURL       string
 	jwtSecret    string
 	jwtExpiresIn time.Duration
 }
 
-// NewAuthService constructs an AuthService.
+// NewAuthService creates and returns an AuthService configured with the given
+// database, repositories, mailer, application URL, and JWT settings. It wires
+// the user, password-reset, category, and payment repositories along with the
+// mailer and JWT configuration into the service.
 func NewAuthService(
 	db *gorm.DB,
 	users *repositories.UserRepository,
+	resets *repositories.PasswordResetRepository,
 	categories *repositories.CategoryRepository,
 	payments *repositories.PaymentMethodRepository,
+	mailer *Mailer,
+	appURL string,
 	jwtSecret string,
 	jwtExpiresIn time.Duration,
 ) *AuthService {
 	return &AuthService{
 		db:           db,
 		users:        users,
+		resets:       resets,
 		categories:   categories,
 		payments:     payments,
+		mailer:       mailer,
+		appURL:       appURL,
 		jwtSecret:    jwtSecret,
 		jwtExpiresIn: jwtExpiresIn,
 	}
@@ -130,6 +149,94 @@ func (s *AuthService) Me(userID uint) (*models.User, error) {
 		return nil, ErrNotFound
 	}
 	return user, nil
+}
+
+// RequestPasswordReset issues a single-use reset token and emails the reset
+// link to the user. It returns the plain token so development environments can
+// surface it for testing. When the email is unknown it returns ErrNotFound —
+// the handler still responds with a generic success to avoid leaking which
+// emails are registered.
+func (s *AuthService) RequestPasswordReset(email string) (string, error) {
+	email = strings.ToLower(strings.TrimSpace(email))
+
+	user, err := s.users.FindByEmail(email)
+	if err != nil {
+		return "", ErrNotFound
+	}
+
+	// Only the newest link should work.
+	if err := s.resets.InvalidateForUser(user.ID); err != nil {
+		return "", err
+	}
+
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return "", err
+	}
+	token := hex.EncodeToString(raw)
+
+	if err := s.resets.Create(&models.PasswordResetToken{
+		UserID:    user.ID,
+		TokenHash: hashResetToken(token),
+		ExpiresAt: time.Now().Add(resetTokenTTL),
+	}); err != nil {
+		return "", err
+	}
+
+	link := fmt.Sprintf("%s/reset-password?token=%s", strings.TrimRight(s.appURL, "/"), token)
+	body := fmt.Sprintf(
+		"Hi %s,\n\nUse the link below to set a new Sumly password. It expires in 1 hour.\n\n%s\n\nIf you didn't request this, you can ignore this email.",
+		user.Name, link,
+	)
+	if err := s.mailer.Send(user.Email, "Reset your Sumly password", body); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+// ResetPassword sets a new password for the user owning a valid reset token,
+// then consumes the token.
+func (s *AuthService) ResetPassword(token, newPassword string) error {
+	record, err := s.resets.FindValidByHash(hashResetToken(strings.TrimSpace(token)))
+	if err != nil {
+		return fmt.Errorf("%w: invalid or expired reset link", ErrValidation)
+	}
+
+	hash, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	if err := s.users.UpdatePassword(record.UserID, hash); err != nil {
+		return err
+	}
+	return s.resets.MarkUsed(record.ID)
+}
+
+// ChangePassword updates the password of a signed-in user after verifying the
+// current one, and invalidates any outstanding reset links.
+func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword string) error {
+	user, err := s.users.FindByID(userID)
+	if err != nil {
+		return ErrNotFound
+	}
+	if !utils.CheckPassword(user.PasswordHash, currentPassword) {
+		return ErrUnauthorized
+	}
+
+	hash, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	if err := s.users.UpdatePassword(user.ID, hash); err != nil {
+		return err
+	}
+	return s.resets.InvalidateForUser(user.ID)
+}
+
+// hashResetToken returns the hex-encoded SHA-256 digest of the provided reset token.
+func hashResetToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
 }
 
 // issueToken signs a JWT for the user and wraps it in an AuthResult.

@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased transition-colors;
+    @apply bg-slate-100 text-slate-900 antialiased transition-colors;
     @apply dark:bg-gray-900 dark:text-gray-100;
   }
 }
@@ -13,27 +13,36 @@
   /* Reusable building blocks keep the pages terse and consistent. Dark-mode
      variants are centralized here so most surfaces adapt automatically. */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
   }
   .btn-secondary {
-    @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+    @apply btn bg-white text-slate-700 border border-slate-200 shadow-soft hover:bg-slate-50;
     @apply dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700;
   }
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
+    @apply btn bg-rose-600 text-white hover:bg-rose-700;
   }
   .input {
-    @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-soft focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25;
     @apply dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:[color-scheme:dark];
   }
   .label {
-    @apply mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300;
+    @apply mb-1.5 block text-sm font-medium text-slate-600 dark:text-gray-300;
   }
   .card {
-    @apply rounded-xl border border-gray-200 bg-white p-5 shadow-sm;
+    @apply rounded-2xl border border-slate-200/70 bg-white p-5 shadow-soft;
     @apply dark:border-gray-700 dark:bg-gray-800;
+  }
+
+  /* Tappable selection pills — used instead of dropdowns for one-tap choices. */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-soft transition active:scale-95;
+    @apply dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200;
+  }
+  .chip-active {
+    @apply border-brand-600 bg-brand-600 text-white shadow-sm;
   }
 }

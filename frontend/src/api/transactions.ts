@@ -7,7 +7,12 @@ import type {
   TransactionType,
 } from '../types';
 
-// Builds a query string from filters, omitting empty values.
+/**
+ * Convert filter values into a string-keyed object suitable for use as query parameters, omitting keys whose values are `undefined`, `null`, or the empty string.
+ *
+ * @param filters - Filter entries to include as query parameters; keys with `undefined`, `null`, or `''` are excluded
+ * @returns An object mapping filter keys to their stringified values
+ */
 function toParams(filters: TransactionFilters): Record<string, string> {
   const params: Record<string, string> = {};
   Object.entries(filters).forEach(([key, value]) => {
@@ -18,7 +23,30 @@ function toParams(filters: TransactionFilters): Record<string, string> {
   return params;
 }
 
+// Expense data extracted from a scanned receipt photo.
+export interface ReceiptScan {
+  amount: number;
+  date: string;
+  merchant: string;
+  description: string;
+  category_id: number;
+}
+
 export const transactionsApi = {
+  // Scans a receipt photo and returns the extracted expense data. The model
+  // writes the description in the given UI language.
+  scanReceipt: (file: File, lang: string) => {
+    const form = new FormData();
+    form.append('image', file);
+    form.append('lang', lang);
+    return api
+      .post<{ data: ReceiptScan }>('/api/transactions/scan-receipt', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
+      })
+      .then((r) => r.data.data);
+  },
+
   list: (filters: TransactionFilters = {}) =>
     api
       .get<{ data: Transaction[]; meta: PaginationMeta }>('/api/transactions', {

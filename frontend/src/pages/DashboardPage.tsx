@@ -7,9 +7,19 @@ import type { DashboardSummary, Transaction } from '../types';
 import { SummaryCard } from '../components/SummaryCard';
 import { PageLoader } from '../components/Spinner';
 import { TransactionRow } from '../components/TransactionRow';
+import { ArrowDownIcon, ArrowUpIcon } from '../components/icons';
 import { formatMoney } from '../utils/format';
 import { useT } from '../i18n/useT';
 
+/**
+ * Renders the dashboard page with the account total, summary cards, and recent transactions.
+ *
+ * Fetches the dashboard summary and the latest transactions on mount and displays a loader,
+ * error message, or the full dashboard UI (hero total balance with quick actions, today and
+ * month summaries, and a recent transactions list).
+ *
+ * @returns The dashboard page JSX element showing loader, error, or the dashboard UI.
+ */
 export function DashboardPage() {
   const { t } = useT();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -47,54 +57,72 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('dashboard.title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">{t('dashboard.title')}</h1>
         <Link to="/transactions/new" className="btn-primary hidden sm:inline-flex">
           {t('dashboard.addTransaction')}
         </Link>
       </div>
 
-      {/* Total balance — a brand gradient hero so it's the first thing you see. */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-700 p-6 text-white shadow-lg">
-        <div className="absolute -right-6 -top-8 h-32 w-32 rounded-full bg-white/10" />
-        <div className="absolute -bottom-10 -left-4 h-28 w-28 rounded-full bg-white/5" />
-        <p className="text-sm font-medium text-brand-50">{t('dashboard.totalBalance')}</p>
-        <p className="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">
+      {/* Hero: total balance + one-tap income/expense entry. */}
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-teal-600 to-cyan-700 p-6 text-white shadow-lifted">
+        <p className="text-sm font-medium text-white/75">{t('dashboard.totalBalance')}</p>
+        <p className="mt-1 text-3xl font-extrabold tracking-tight">
           {formatMoney(summary.total_balance)}
         </p>
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Link
+            to="/transactions/new?type=income"
+            className="flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold backdrop-blur transition hover:bg-white/25 active:scale-[0.98]"
+          >
+            <ArrowUpIcon className="h-4 w-4" />
+            {t('common.income')}
+          </Link>
+          <Link
+            to="/transactions/new?type=expense"
+            className="flex items-center justify-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold backdrop-blur transition hover:bg-white/25 active:scale-[0.98]"
+          >
+            <ArrowDownIcon className="h-4 w-4" />
+            {t('common.expense')}
+          </Link>
+        </div>
       </div>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.today')}</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('dashboard.today')}</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           <SummaryCard label={t('common.income')} amount={summary.today.income} tone="income" />
           <SummaryCard label={t('common.expense')} amount={summary.today.expense} tone="expense" />
-          <SummaryCard label={t('common.netProfit')} amount={summary.today.net} tone="net" />
+          <div className="col-span-2 sm:col-span-1">
+            <SummaryCard label={t('common.netProfit')} amount={summary.today.net} tone="net" />
+          </div>
         </div>
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.thisMonth')}</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('dashboard.thisMonth')}</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           <SummaryCard label={t('common.income')} amount={summary.month.income} tone="income" />
           <SummaryCard label={t('common.expense')} amount={summary.month.expense} tone="expense" />
-          <SummaryCard label={t('common.netProfit')} amount={summary.month.net} tone="net" />
+          <div className="col-span-2 sm:col-span-1">
+            <SummaryCard label={t('common.netProfit')} amount={summary.month.net} tone="net" />
+          </div>
         </div>
       </section>
 
       <section>
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{t('dashboard.recentTransactions')}</h2>
-          <Link to="/transactions" className="text-sm font-medium text-brand-600 hover:underline">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('dashboard.recentTransactions')}</h2>
+          <Link to="/transactions" className="text-sm font-semibold text-brand-600 hover:underline">
             {t('dashboard.viewAll')}
           </Link>
         </div>
         {recent.length === 0 ? (
-          <div className="card text-center text-sm text-gray-500">
+          <div className="card text-center text-sm text-slate-500">
             {t('dashboard.noTransactions')}{' '}
             <Link to="/transactions/new" className="text-brand-600 hover:underline">{t('dashboard.addFirst')}</Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-soft dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
             {recent.map((tx) => (
               <TransactionRow key={tx.id} tx={tx} />
             ))}

@@ -10,10 +10,17 @@ import {
   PlusIcon,
   SettingsIcon,
 } from './icons';
+import { Logo } from './Logo';
 
 // App shell: a sidebar on desktop and a bottom tab bar on mobile. The center
 // "+" tab is an elevated Add button for fast, one-tap entry — the primary
-// action in a daily-use finance app.
+/**
+ * Renders the application shell with responsive navigation and content areas.
+ *
+ * The layout provides a desktop sidebar, a mobile header, a shared main content area that renders route children via `<Outlet />`, and a mobile bottom tab bar. It also exposes a logout control that calls the auth store's `logout` and navigates to `/login`.
+ *
+ * @returns The layout JSX element containing navigation, header, main content, and the mobile tab bar
+ */
 export function Layout() {
   const { user, logout } = useAuthStore();
   const { t } = useT();
@@ -36,7 +43,7 @@ export function Layout() {
   return (
     <div className="min-h-screen md:flex">
       {/* ---- Desktop sidebar ---- */}
-      <aside className="hidden w-60 shrink-0 border-r border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 md:block">
+      <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 md:block">
         <Brand />
         <nav className="mt-6 space-y-1">
           {sidebarItems.map(({ to, label, icon: Icon, end }) => (
@@ -45,10 +52,10 @@ export function Layout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-600/20 dark:text-brand-300'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ? 'bg-gradient-to-r from-brand-600 to-teal-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`
               }
             >
@@ -60,7 +67,7 @@ export function Layout() {
       </aside>
 
       {/* ---- Mobile top bar (brand + theme + language) ---- */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 md:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur dark:border-gray-700 dark:bg-gray-800/90 md:hidden">
         <Brand />
         <div className="flex items-center gap-2">
           <ThemeQuickToggle />
@@ -71,10 +78,10 @@ export function Layout() {
       {/* ---- Main content ---- */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Desktop top bar */}
-        <div className="hidden items-center justify-end gap-4 border-b border-gray-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800 md:flex">
+        <div className="hidden items-center justify-end gap-4 border-b border-slate-200 bg-white px-6 py-3 dark:border-gray-700 dark:bg-gray-800 md:flex">
           <ThemeQuickToggle />
           <LanguageSwitcher />
-          <span className="text-sm text-gray-600 dark:text-gray-300">{user?.name}</span>
+          <span className="text-sm text-slate-600 dark:text-gray-300">{user?.name}</span>
           <button className="btn-secondary" onClick={handleLogout}>
             {t('common.logout')}
           </button>
@@ -92,17 +99,23 @@ export function Layout() {
   );
 }
 
-// Bottom navigation for mobile: Dashboard · Reports · (+) Add · Transactions · Settings.
+/**
+ * Render the fixed mobile bottom navigation with tabs for Dashboard, Reports, a central elevated Add action, Transactions, and Settings.
+ *
+ * The tab labels are localized via the translation hook; the Add button is visually elevated, has an `aria-label`, and the whole bar is hidden on medium and larger viewports.
+ *
+ * @returns The navigation bar JSX element for mobile bottom-tabs.
+ */
 function MobileTabBar() {
   const { t } = useT();
 
   const tabClass = ({ isActive }: { isActive: boolean }) =>
-    `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium ${
-      isActive ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-gray-400'
+    `flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold transition ${
+      isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400 dark:text-gray-400'
     }`;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-end border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_8px_rgba(0,0,0,0.04)] dark:border-gray-700 dark:bg-gray-800 md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 flex items-end border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_12px_rgba(15,23,42,0.06)] backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 md:hidden">
       <NavLink to="/" end className={tabClass}>
         <HomeIcon className="h-6 w-6" />
         {t('nav.dashboard')}
@@ -117,7 +130,7 @@ function MobileTabBar() {
         <NavLink
           to="/transactions/new"
           aria-label={t('nav.add')}
-          className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg ring-4 ring-white transition active:scale-95 dark:ring-gray-800"
+          className="-mt-6 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-teal-600 text-white shadow-lifted ring-4 ring-white transition active:scale-95"
         >
           <PlusIcon className="h-7 w-7" />
         </NavLink>
@@ -135,14 +148,16 @@ function MobileTabBar() {
   );
 }
 
-// Sumly wordmark used in the header/sidebar.
+/**
+ * Renders the Sumly wordmark used in the app header and sidebar.
+ *
+ * @returns A JSX element containing the `Logo` icon and the "Sumly" text
+ */
 function Brand() {
   return (
     <div className="flex items-center gap-2">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-        S
-      </span>
-      <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">Sumly</span>
+      <Logo className="h-8 w-8" />
+      <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-gray-100">Sumly</span>
     </div>
   );
 }

@@ -48,6 +48,13 @@ func (r *UserRepository) FindByID(id uint) (*models.User, error) {
 	return &user, err
 }
 
+// UpdatePassword replaces the user's password hash.
+func (r *UserRepository) UpdatePassword(userID uint, passwordHash string) error {
+	return r.db.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("password_hash", passwordHash).Error
+}
+
 // EmailExists reports whether a user already uses the given email.
 func (r *UserRepository) EmailExists(email string) (bool, error) {
 	var count int64
