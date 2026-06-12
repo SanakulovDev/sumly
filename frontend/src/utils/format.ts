@@ -14,6 +14,11 @@ export function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+// Returns yesterday's date as YYYY-MM-DD, used by the quick date chips.
+export function yesterdayISO(): string {
+  return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
 // Returns the current month as YYYY-MM.
 export function currentMonth(): string {
   return new Date().toISOString().slice(0, 7);

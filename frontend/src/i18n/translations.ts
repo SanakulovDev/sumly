@@ -38,6 +38,8 @@ const en = {
     optional: 'optional',
     previous: 'Previous',
     next: 'Next',
+    today: 'Today',
+    yesterday: 'Yesterday',
   },
   nav: {
     dashboard: 'Dashboard',
@@ -103,6 +105,7 @@ const en = {
     descriptionPlaceholder: 'e.g. Lunch with client',
     added: 'Transaction added',
     updated: 'Transaction updated',
+    saveAndNew: 'Save & add another',
   },
   categories: {
     title: 'Categories',
@@ -192,6 +195,8 @@ const ru: Dictionary = {
     optional: 'необязательно',
     previous: 'Назад',
     next: 'Вперёд',
+    today: 'Сегодня',
+    yesterday: 'Вчера',
   },
   nav: {
     dashboard: 'Главная',
@@ -257,6 +262,7 @@ const ru: Dictionary = {
     descriptionPlaceholder: 'напр. Обед с клиентом',
     added: 'Операция добавлена',
     updated: 'Операция обновлена',
+    saveAndNew: 'Сохранить и добавить ещё',
   },
   categories: {
     title: 'Категории',
@@ -342,6 +348,8 @@ const uz: Dictionary = {
     optional: 'ixtiyoriy',
     previous: 'Oldingi',
     next: 'Keyingi',
+    today: 'Bugun',
+    yesterday: 'Kecha',
   },
   nav: {
     dashboard: 'Bosh sahifa',
@@ -407,6 +415,7 @@ const uz: Dictionary = {
     descriptionPlaceholder: 'masalan: Mijoz bilan tushlik',
     added: "Amal qo'shildi",
     updated: 'Amal yangilandi',
+    saveAndNew: "Saqlash va yana qo'shish",
   },
   categories: {
     title: 'Kategoriyalar',

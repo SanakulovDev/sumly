@@ -1,4 +1,5 @@
 import { formatMoney } from '../utils/format';
+import { ArrowDownIcon, ArrowUpIcon, WalletIcon } from './icons';
 
 interface SummaryCardProps {
   label: string;
@@ -7,23 +8,32 @@ interface SummaryCardProps {
   tone?: 'neutral' | 'income' | 'expense' | 'net';
 }
 
-const toneClasses: Record<NonNullable<SummaryCardProps['tone']>, string> = {
-  neutral: 'text-gray-900',
-  income: 'text-brand-600',
-  expense: 'text-red-600',
-  net: 'text-gray-900',
-};
+// Per-tone styling: value color plus a tinted icon chip for an instant read.
+const tones = {
+  neutral: { value: 'text-slate-900', chip: 'bg-slate-100 text-slate-600', Icon: WalletIcon },
+  income: { value: 'text-brand-600', chip: 'bg-brand-100 text-brand-700', Icon: ArrowUpIcon },
+  expense: { value: 'text-rose-600', chip: 'bg-rose-100 text-rose-600', Icon: ArrowDownIcon },
+  net: { value: 'text-slate-900', chip: 'bg-slate-100 text-slate-600', Icon: WalletIcon },
+} as const;
 
 // A single dashboard metric card.
 export function SummaryCard({ label, amount, tone = 'neutral' }: SummaryCardProps) {
+  const { chip, Icon } = tones[tone];
   // Net figures are colored by sign for an at-a-glance read.
-  const netTone = amount >= 0 ? 'text-brand-600' : 'text-red-600';
-  const valueClass = tone === 'net' ? netTone : toneClasses[tone];
+  const valueClass =
+    tone === 'net' ? (amount >= 0 ? 'text-brand-600' : 'text-rose-600') : tones[tone].value;
 
   return (
-    <div className="card">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className={`mt-2 text-xl font-bold ${valueClass}`}>{formatMoney(amount)}</p>
+    <div className="card p-4">
+      <div className="flex items-center gap-2">
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${chip}`}>
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+        <p className="truncate text-xs font-medium text-slate-500">{label}</p>
+      </div>
+      <p className={`mt-2.5 truncate text-base font-bold sm:text-lg ${valueClass}`}>
+        {formatMoney(amount)}
+      </p>
     </div>
   );
 }

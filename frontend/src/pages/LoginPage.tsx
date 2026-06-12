@@ -87,17 +87,17 @@ export function AuthShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-brand-50 via-slate-50 to-slate-100 p-4">
       <div className="w-full max-w-sm">
         <div className="mb-4 flex justify-end">
           <LanguageSwitcher />
         </div>
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-teal-600 text-xl font-bold text-white shadow-lifted">
             S
           </div>
-          <h1 className="text-xl font-bold text-gray-900">{title}</h1>
-          <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>
         <div className="card">{children}</div>
       </div>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Transaction } from '../types';
 import { formatMoney, formatDate } from '../utils/format';
 import { useT } from '../i18n/useT';
+import { ArrowDownIcon, ArrowUpIcon, PencilIcon, TrashIcon } from './icons';
 
 interface TransactionRowProps {
   tx: Transaction;
@@ -9,8 +10,8 @@ interface TransactionRowProps {
   onDelete?: (tx: Transaction) => void;
 }
 
-// A single transaction line: category, payment method (with card last-4 when
-// present), date, and a signed, color-coded amount. Names are localized.
+// A single transaction line: a direction badge, category, payment method (with
+// card last-4 when present), date, and a signed, color-coded amount.
 export function TransactionRow({ tx, onDelete }: TransactionRowProps) {
   const { t, tCategory, tPayment } = useT();
   const isIncome = tx.type === 'income';
@@ -22,33 +23,44 @@ export function TransactionRow({ tx, onDelete }: TransactionRowProps) {
 
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-gray-900">
-          {tx.category ? tCategory(tx.category.name) : '—'}
-        </p>
-        <p className="truncate text-xs text-gray-500">
-          {formatDate(tx.transaction_date)} · {paymentLabel}
-          {tx.description ? ` · ${tx.description}` : ''}
-        </p>
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            isIncome ? 'bg-brand-100 text-brand-700' : 'bg-rose-100 text-rose-600'
+          }`}
+        >
+          {isIncome ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-slate-900">
+            {tx.category ? tCategory(tx.category.name) : '—'}
+          </p>
+          <p className="truncate text-xs text-slate-500">
+            {formatDate(tx.transaction_date)} · {paymentLabel}
+            {tx.description ? ` · ${tx.description}` : ''}
+          </p>
+        </div>
       </div>
-      <div className="flex items-center gap-3">
-        <span className={`whitespace-nowrap text-sm font-semibold ${isIncome ? 'text-brand-600' : 'text-red-600'}`}>
+      <div className="flex shrink-0 items-center gap-2">
+        <span className={`whitespace-nowrap text-sm font-bold ${isIncome ? 'text-brand-600' : 'text-rose-600'}`}>
           {isIncome ? '+' : '−'}
           {formatMoney(tx.amount)}
         </span>
         {onDelete && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center">
             <Link
               to={`/transactions/${tx.id}/edit`}
-              className="rounded p-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              aria-label={t('common.edit')}
+              className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
             >
-              {t('common.edit')}
+              <PencilIcon className="h-4 w-4" />
             </Link>
             <button
               onClick={() => onDelete(tx)}
-              className="rounded p-1 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-700"
+              aria-label={t('common.delete')}
+              className="rounded-lg p-2 text-rose-400 transition hover:bg-rose-50 hover:text-rose-600"
             >
-              {t('common.delete')}
+              <TrashIcon className="h-4 w-4" />
             </button>
           </div>
         )}

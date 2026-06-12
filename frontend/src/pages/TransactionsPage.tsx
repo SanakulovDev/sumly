@@ -187,7 +187,7 @@ export function TransactionsPage() {
       ) : items.length === 0 ? (
         <div className="card text-center text-sm text-gray-500">{t('transactions.noMatch')}</div>
       ) : (
-        <div className="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-soft">
           {items.map((tx) => (
             <TransactionRow key={tx.id} tx={tx} onDelete={handleDelete} />
           ))}
