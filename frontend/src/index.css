@@ -44,5 +44,9 @@
   }
   .chip-active {
     @apply border-brand-600 bg-brand-600 text-white shadow-sm;
+    /* Needs explicit dark variants: the inactive .chip's dark:bg-gray-800 has
+       higher specificity than bg-brand-600 and would otherwise win, leaving the
+       selected chip indistinguishable in dark mode. */
+    @apply dark:border-brand-400 dark:bg-brand-500 dark:text-gray-950;
   }
 }
