@@ -38,3 +38,5 @@ frontend/dist/
 # Local env files (keep .env.example tracked)
 .env.local
 *.env
+# Superpowers brainstorming artifacts
+.superpowers/
