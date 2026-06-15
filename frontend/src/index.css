@@ -50,3 +50,67 @@
     @apply dark:border-brand-400 dark:bg-brand-500 dark:text-gray-950;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Landing-page presentation layer. These utilities back the marketing redesign
+   (aurora background, glass surfaces, gradient text, scroll-reveal motion) and
+   are intentionally scoped by class so the in-app UI is untouched.
+   --------------------------------------------------------------------------- */
+@layer components {
+  /* Frosted, layered surface for the hero demo and feature tiles. */
+  .glass {
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl;
+    @apply dark:border-white/10 dark:bg-white/5;
+  }
+
+  /* Emerald → teal → cyan text fill for accent words. */
+  .text-gradient {
+    @apply bg-gradient-to-r from-brand-600 via-emerald-500 to-teal-400 bg-clip-text text-transparent;
+  }
+
+  /* Pill used in section eyebrows and badges. */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-brand-200/70 bg-brand-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-700;
+    @apply dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300;
+  }
+}
+
+@layer utilities {
+  /* Scroll-reveal: content is fully visible by default (no-JS, crawlers, and
+     reduced-motion users lose nothing). Only when JS is present do we hide it
+     and animate it back in as it scrolls into view. */
+  html.js .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* More specific than `html.js .reveal` so the reveal actually wins. */
+  html.js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Dotted-grid texture for the hero backdrop. */
+  .bg-grid {
+    background-image: radial-gradient(currentColor 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html.js .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    .animate-aurora,
+    .animate-aurora-slow,
+    .animate-float,
+    .animate-scan,
+    .animate-growbar,
+    .animate-marquee {
+      animation: none !important;
+    }
+  }
+}
