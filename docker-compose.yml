@@ -45,6 +45,8 @@ services:
       DB_SSLMODE: disable
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       JWT_EXPIRES_HOURS: ${JWT_EXPIRES_HOURS:-72}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
       # The frontend is same-origin via nginx, so CORS is mostly a safety net.
       CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:3000}
     depends_on:

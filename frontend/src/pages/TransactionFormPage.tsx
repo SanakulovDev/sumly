@@ -69,6 +69,7 @@ export function TransactionFormPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [scanPreview, setScanPreview] = useState<{ url: string; name: string } | null>(null);
   const [error, setError] = useState('');
   const scanInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,6 +84,12 @@ export function TransactionFormPage() {
   const [cardLast4, setCardLast4] = useState('');
   const [date, setDate] = useState(todayISO());
   const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    return () => {
+      if (scanPreview) URL.revokeObjectURL(scanPreview.url);
+    };
+  }, [scanPreview]);
 
   // Apply remembered/default selections for the given type (add mode only).
   const applyDefaults = (forType: TransactionType, cats: Category[], pms: PaymentMethod[]) => {
@@ -165,11 +172,13 @@ export function TransactionFormPage() {
     e.target.value = '';
     if (!file) return;
 
+    setScanPreview({ url: URL.createObjectURL(file), name: file.name });
     setScanning(true);
     setError('');
     try {
       const scan = await transactionsApi.scanReceipt(file, lang);
       setAmount(String(scan.amount));
+      setCurrency('UZS');
       if (scan.date) setDate(scan.date);
       const desc = [scan.merchant, scan.description].filter(Boolean).join(' — ');
       if (desc) setDescription(desc.slice(0, 500));
@@ -240,206 +249,254 @@ export function TransactionFormPage() {
   if (loading) return <PageLoader />;
 
   const isExpense = type === 'expense';
+  const showScanner = !isEdit && isExpense;
 
   return (
-    <div className="mx-auto max-w-lg space-y-5">
-      <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">
-        {isEdit ? t('form.editTitle') : t('form.addTitle')}
-      </h1>
-
-      <form onSubmit={handleSubmit} className="card space-y-5">
-        {error && (
-          <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-red-900/30 dark:text-red-300">
-            {error}
+    <div className="mx-auto max-w-4xl space-y-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className={`text-sm font-semibold ${isExpense ? 'text-rose-600 dark:text-rose-400' : 'text-brand-600 dark:text-brand-400'}`}>
+            {isExpense ? t('common.expense') : t('common.income')}
           </p>
-        )}
-
-        <div>
-          <label className="label">{t('transactions.type')}</label>
-          <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-gray-700/40">
-            <button
-              type="button"
-              onClick={() => handleTypeChange('expense')}
-              className={`rounded-lg py-2 text-sm font-semibold transition ${
-                isExpense
-                  ? 'bg-rose-600 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              {t('common.expense')}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleTypeChange('income')}
-              className={`rounded-lg py-2 text-sm font-semibold transition ${
-                !isExpense
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              {t('common.income')}
-            </button>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-gray-100">
+            {isEdit ? t('form.editTitle') : t('form.addTitle')}
+          </h1>
         </div>
+      </div>
 
-        {/* Receipt scanner — photographs a payment receipt and pre-fills the
-            expense from it. Only shown when adding an expense. */}
-        {!isEdit && isExpense && (
-          <div>
-            <input
-              ref={scanInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleScanFile}
-            />
-            <button
-              type="button"
-              onClick={() => scanInputRef.current?.click()}
-              disabled={scanning}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/60 px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50 active:scale-[0.99] disabled:opacity-60 dark:border-brand-600/50 dark:bg-brand-600/10 dark:text-brand-300 dark:hover:bg-brand-600/15"
-            >
-              {scanning ? (
-                <Spinner className="h-4 w-4 border-brand-300 border-t-brand-600" />
-              ) : (
-                <CameraIcon className="h-5 w-5" />
+      <form
+        onSubmit={handleSubmit}
+        className={`grid gap-5 ${showScanner ? 'lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start' : ''}`}
+      >
+        {showScanner && (
+          <aside className="order-1 space-y-4 lg:order-2 lg:sticky lg:top-20">
+            <div className="card space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
+                  <CameraIcon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-gray-100">
+                    {t('form.scanReceipt')}
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-gray-400">
+                    {scanning ? t('form.scanning') : t('form.scanHint')}
+                  </p>
+                </div>
+              </div>
+
+              {scanPreview && (
+                <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-gray-700 dark:bg-gray-900/40">
+                  <img
+                    src={scanPreview.url}
+                    alt=""
+                    className="h-16 w-12 shrink-0 rounded-md object-cover"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-800 dark:text-gray-100">
+                      {scanPreview.name}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-gray-400">
+                      {scanning ? t('form.scanning') : t('form.scanned')}
+                    </p>
+                  </div>
+                </div>
               )}
-              {scanning ? t('form.scanning') : t('form.scanReceipt')}
-            </button>
-            <p className="mt-1 text-xs text-slate-400 dark:text-gray-500">{t('form.scanHint')}</p>
-          </div>
+
+              <div>
+                <input
+                  ref={scanInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleScanFile}
+                />
+                <button
+                  type="button"
+                  onClick={() => scanInputRef.current?.click()}
+                  disabled={scanning}
+                  className="btn-secondary w-full border-brand-200 text-brand-700 hover:border-brand-300 hover:bg-brand-50 dark:border-brand-500/40 dark:text-brand-300 dark:hover:bg-brand-500/10"
+                >
+                  {scanning ? (
+                    <Spinner className="h-4 w-4 border-brand-300 border-t-brand-600" />
+                  ) : (
+                    <CameraIcon className="h-5 w-5" />
+                  )}
+                  {scanning ? t('form.scanning') : t('form.scanReceipt')}
+                </button>
+              </div>
+            </div>
+          </aside>
         )}
 
-        {/* Amount with currency, live preview + quick-amount chips. */}
-        <AmountField
-          amount={amount}
-          setAmount={setAmount}
-          type={type}
-          currency={currency}
-          setCurrency={setCurrency}
-        />
-
-        {/* Category chips — one tap instead of a dropdown. */}
-        <div>
-          <span className="label">{t('transactions.category')}</span>
-          <div className="flex flex-wrap gap-2">
-            {typeCategories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCategoryId(c.id)}
-                className={`chip ${categoryId === c.id ? 'chip-active' : ''}`}
-              >
-                {tCategory(c.name)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Payment method chips; card methods get a small card icon. */}
-        <div>
-          <span className="label">{t('nav.paymentMethods')}</span>
-          <div className="flex flex-wrap gap-2">
-            {paymentMethods.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => {
-                  setPaymentMethodId(p.id);
-                  if (p.id !== paymentMethodId) setCardLast4('');
-                }}
-                className={`chip ${paymentMethodId === p.id ? 'chip-active' : ''}`}
-              >
-                {p.is_card && <CardIcon className="h-3.5 w-3.5" />}
-                {tPayment(p.name)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Card last-4 — only for card payment methods. */}
-        {isCard && (
-          <div>
-            <label className="label" htmlFor="cardLast4">{t('form.cardLast4')}</label>
-            <input
-              id="cardLast4"
-              inputMode="numeric"
-              maxLength={4}
-              pattern="\d{4}"
-              className="input tracking-widest"
-              value={cardLast4}
-              onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              placeholder="1234"
-              required
-            />
-            <p className="mt-1 text-xs text-slate-400">{t('form.cardLast4Hint')}</p>
-          </div>
-        )}
-
-        {/* Date with Today/Yesterday quick chips. */}
-        <div>
-          <label className="label" htmlFor="date">{t('common.date')}</label>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className={`chip ${date === todayISO() ? 'chip-active' : ''}`}
-              onClick={() => setDate(todayISO())}
-            >
-              {t('common.today')}
-            </button>
-            <button
-              type="button"
-              className={`chip ${date === yesterdayISO() ? 'chip-active' : ''}`}
-              onClick={() => setDate(yesterdayISO())}
-            >
-              {t('common.yesterday')}
-            </button>
-            <input
-              id="date"
-              type="date"
-              className="input flex-1"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="label" htmlFor="description">
-            {t('common.description')} ({t('common.optional')})
-          </label>
-          <input
-            id="description"
-            className="input"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            maxLength={500}
-            placeholder={t('form.descriptionPlaceholder')}
-          />
-        </div>
-
-        <div className="space-y-2 pt-1">
-          <div className="flex gap-3">
-            <button type="submit" className="btn-primary flex-1" disabled={submitting}>
-              {submitting ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : t('common.save')}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
-              {t('common.cancel')}
-            </button>
-          </div>
-          {!isEdit && (
-            <button
-              type="button"
-              className="btn w-full text-brand-700 hover:bg-brand-50"
-              disabled={submitting}
-              onClick={() => void save(true)}
-            >
-              {t('form.saveAndNew')}
-            </button>
+        <section className={`card space-y-5 ${showScanner ? 'order-2 lg:order-1' : 'mx-auto w-full max-w-lg'}`}>
+          {error && (
+            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-red-900/30 dark:text-red-300">
+              {error}
+            </p>
           )}
-        </div>
+
+          <div>
+            <label className="label">{t('transactions.type')}</label>
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 dark:bg-gray-700/40">
+              <button
+                type="button"
+                aria-pressed={isExpense}
+                onClick={() => handleTypeChange('expense')}
+                className={`rounded-md py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/30 ${
+                  isExpense
+                    ? 'bg-rose-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                {t('common.expense')}
+              </button>
+              <button
+                type="button"
+                aria-pressed={!isExpense}
+                onClick={() => handleTypeChange('income')}
+                className={`rounded-md py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 ${
+                  !isExpense
+                    ? 'bg-brand-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                {t('common.income')}
+              </button>
+            </div>
+          </div>
+
+          {/* Amount with currency, live preview + quick-amount chips. */}
+          <AmountField
+            amount={amount}
+            setAmount={setAmount}
+            type={type}
+            currency={currency}
+            setCurrency={setCurrency}
+          />
+
+          {/* Category chips — one tap instead of a dropdown. */}
+          <div>
+            <span className="label">{t('transactions.category')}</span>
+            <div className="flex flex-wrap gap-2">
+              {typeCategories.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategoryId(c.id)}
+                  className={`chip ${categoryId === c.id ? 'chip-active' : ''}`}
+                >
+                  {tCategory(c.name)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment method chips; card methods get a small card icon. */}
+          <div>
+            <span className="label">{t('nav.paymentMethods')}</span>
+            <div className="flex flex-wrap gap-2">
+              {paymentMethods.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    setPaymentMethodId(p.id);
+                    if (p.id !== paymentMethodId) setCardLast4('');
+                  }}
+                  className={`chip ${paymentMethodId === p.id ? 'chip-active' : ''}`}
+                >
+                  {p.is_card && <CardIcon className="h-3.5 w-3.5" />}
+                  {tPayment(p.name)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Card last-4 — only for card payment methods. */}
+          {isCard && (
+            <div>
+              <label className="label" htmlFor="cardLast4">{t('form.cardLast4')}</label>
+              <input
+                id="cardLast4"
+                inputMode="numeric"
+                maxLength={4}
+                pattern="\d{4}"
+                className="input tracking-widest"
+                value={cardLast4}
+                onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="1234"
+                required
+              />
+              <p className="mt-1 text-xs text-slate-400">{t('form.cardLast4Hint')}</p>
+            </div>
+          )}
+
+          {/* Date with Today/Yesterday quick chips. */}
+          <div>
+            <label className="label" htmlFor="date">{t('common.date')}</label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`chip ${date === todayISO() ? 'chip-active' : ''}`}
+                onClick={() => setDate(todayISO())}
+              >
+                {t('common.today')}
+              </button>
+              <button
+                type="button"
+                className={`chip ${date === yesterdayISO() ? 'chip-active' : ''}`}
+                onClick={() => setDate(yesterdayISO())}
+              >
+                {t('common.yesterday')}
+              </button>
+              <input
+                id="date"
+                type="date"
+                className="input min-w-[9rem] flex-1"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="label" htmlFor="description">
+              {t('common.description')} ({t('common.optional')})
+            </label>
+            <input
+              id="description"
+              className="input"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={500}
+              placeholder={t('form.descriptionPlaceholder')}
+            />
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <div className="flex flex-col-reverse gap-3 sm:flex-row">
+              <button type="button" className="btn-secondary sm:w-auto" onClick={() => navigate(-1)}>
+                {t('common.cancel')}
+              </button>
+              <button type="submit" className="btn-primary flex-1" disabled={submitting}>
+                {submitting ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : t('common.save')}
+              </button>
+            </div>
+            {!isEdit && (
+              <button
+                type="button"
+                className="btn w-full text-brand-700 hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-500/10"
+                disabled={submitting}
+                onClick={() => void save(true)}
+              >
+                {t('form.saveAndNew')}
+              </button>
+            )}
+          </div>
+        </section>
       </form>
     </div>
   );

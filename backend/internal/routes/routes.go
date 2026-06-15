@@ -34,7 +34,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	transactionService := services.NewTransactionService(transactionRepo, categoryRepo, paymentRepo, currencyService)
 	reportService := services.NewReportService(transactionRepo)
 	exportService := services.NewExportService(transactionRepo)
-	scannerService := services.NewReceiptScannerService(categoryRepo, cfg.AnthropicAPIKey, cfg.ClaudeModel)
+	scannerService := services.NewReceiptScannerService(categoryRepo, cfg.GeminiAPIKey, cfg.GeminiModel)
 
 	// Handlers (HTTP layer).
 	authHandler := handlers.NewAuthHandler(authService, cfg.AppEnv == "development")

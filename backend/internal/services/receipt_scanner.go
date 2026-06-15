@@ -1,17 +1,24 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
-	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/sumly/backend/internal/models"
 	"github.com/sumly/backend/internal/repositories"
+)
+
+const (
+	defaultGeminiReceiptModel = "gemini-3.5-flash"
+	geminiGenerateBaseURL     = "https://generativelanguage.googleapis.com/v1beta/models"
 )
 
 // ReceiptScanResult is the structured data extracted from a receipt photo.
@@ -30,21 +37,28 @@ type ReceiptScanResult struct {
 }
 
 // ReceiptScannerService extracts expense data from receipt photos using the
-// Claude API (vision + structured outputs).
+// Gemini API free-tier Flash models (vision + structured outputs).
 type ReceiptScannerService struct {
 	categories *repositories.CategoryRepository
 	apiKey     string
 	model      string
+	httpClient *http.Client
 }
 
-// NewReceiptScannerService constructs a ReceiptScannerService. An empty apiKey
-// NewReceiptScannerService creates a ReceiptScannerService using the provided category repository, Anthropic API key, and model.
-// If model is empty, it defaults to anthropic.ModelClaudeOpus4_8. If apiKey is empty, scanning will be disabled via Enabled().
+// NewReceiptScannerService creates a ReceiptScannerService using the provided
+// category repository, Gemini API key, and model. If model is empty, it
+// defaults to a Gemini Flash model available on the free tier. If apiKey is
+// empty, scanning is disabled via Enabled().
 func NewReceiptScannerService(categories *repositories.CategoryRepository, apiKey, model string) *ReceiptScannerService {
 	if model == "" {
-		model = string(anthropic.ModelClaudeOpus4_8)
+		model = defaultGeminiReceiptModel
 	}
-	return &ReceiptScannerService{categories: categories, apiKey: apiKey, model: model}
+	return &ReceiptScannerService{
+		categories: categories,
+		apiKey:     apiKey,
+		model:      strings.TrimSpace(model),
+		httpClient: &http.Client{Timeout: 90 * time.Second},
+	}
 }
 
 // Enabled reports whether an API key is configured.
@@ -72,7 +86,7 @@ var receiptSchema = map[string]any{
 // ("uz", "ru" or "en").
 func (s *ReceiptScannerService) Scan(ctx context.Context, userID uint, imageData []byte, mediaType, lang string) (*ReceiptScanResult, error) {
 	if !s.Enabled() {
-		return nil, fmt.Errorf("%w: receipt scanning is not configured (set ANTHROPIC_API_KEY)", ErrValidation)
+		return nil, fmt.Errorf("%w: receipt scanning is not configured (set GEMINI_API_KEY)", ErrValidation)
 	}
 
 	// Offer the user's own expense categories so the suggestion maps to a real ID.
@@ -103,41 +117,21 @@ Extract the expense data for a personal finance tracker:
 If the image is not a receipt, return amount 0 and empty strings.`,
 		time.Now().Format("2006-01-02"), langName, catList.String())
 
-	client := anthropic.NewClient(option.WithAPIKey(s.apiKey))
-
-	resp, err := client.Messages.New(ctx, anthropic.MessageNewParams{
-		Model:     anthropic.Model(s.model),
-		MaxTokens: 2048,
-		OutputConfig: anthropic.OutputConfigParam{
-			Format: anthropic.JSONOutputFormatParam{Schema: receiptSchema},
-		},
-		Messages: []anthropic.MessageParam{
-			anthropic.NewUserMessage(
-				anthropic.NewImageBlockBase64(mediaType, base64.StdEncoding.EncodeToString(imageData)),
-				anthropic.NewTextBlock(prompt),
-			),
-		},
-	})
+	text, err := s.generateReceiptJSON(ctx, imageData, mediaType, prompt, false)
+	if apiErr, ok := err.(*geminiAPIError); ok && apiErr.statusCode == http.StatusBadRequest {
+		// Some older Gemini API deployments use response_mime_type/response_schema
+		// instead of the current responseFormat shape. Retry once for compatibility.
+		text, err = s.generateReceiptJSON(ctx, imageData, mediaType, prompt, true)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("receipt scan request: %w", err)
-	}
-	if resp.StopReason == anthropic.StopReasonRefusal {
-		return nil, fmt.Errorf("%w: the image could not be processed", ErrValidation)
-	}
-
-	var text string
-	for _, block := range resp.Content {
-		if b, ok := block.AsAny().(anthropic.TextBlock); ok {
-			text = b.Text
-			break
-		}
 	}
 	if text == "" {
 		return nil, fmt.Errorf("%w: no data could be read from the image", ErrValidation)
 	}
 
 	var result ReceiptScanResult
-	if err := json.Unmarshal([]byte(text), &result); err != nil {
+	if err := json.Unmarshal([]byte(extractJSONObject(text)), &result); err != nil {
 		return nil, fmt.Errorf("parse receipt scan result: %w", err)
 	}
 	if result.Amount <= 0 {
@@ -159,4 +153,177 @@ If the image is not a receipt, return amount 0 and empty strings.`,
 	}
 
 	return &result, nil
+}
+
+type geminiGenerateRequest struct {
+	Contents         []geminiContent        `json:"contents"`
+	GenerationConfig geminiGenerationConfig `json:"generationConfig"`
+}
+
+type geminiContent struct {
+	Parts []geminiPart `json:"parts"`
+}
+
+type geminiPart struct {
+	Text       string            `json:"text,omitempty"`
+	InlineData *geminiInlineData `json:"inline_data,omitempty"`
+}
+
+type geminiInlineData struct {
+	MimeType string `json:"mime_type"`
+	Data     string `json:"data"`
+}
+
+type geminiGenerationConfig struct {
+	MaxOutputTokens  int                   `json:"maxOutputTokens,omitempty"`
+	ResponseFormat   *geminiResponseFormat `json:"responseFormat,omitempty"`
+	ResponseMIMEType string                `json:"response_mime_type,omitempty"`
+	ResponseSchema   map[string]any        `json:"response_schema,omitempty"`
+}
+
+type geminiResponseFormat struct {
+	Text geminiResponseTextFormat `json:"text"`
+}
+
+type geminiResponseTextFormat struct {
+	MimeType string         `json:"mimeType"`
+	Schema   map[string]any `json:"schema"`
+}
+
+type geminiGenerateResponse struct {
+	Candidates []struct {
+		Content struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		} `json:"content"`
+		FinishReason string `json:"finishReason"`
+	} `json:"candidates"`
+	PromptFeedback struct {
+		BlockReason string `json:"blockReason"`
+	} `json:"promptFeedback"`
+}
+
+type geminiErrorResponse struct {
+	Error struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Status  string `json:"status"`
+	} `json:"error"`
+}
+
+type geminiAPIError struct {
+	statusCode int
+	message    string
+}
+
+func (e *geminiAPIError) Error() string {
+	if e.message == "" {
+		return fmt.Sprintf("Gemini API returned HTTP %d", e.statusCode)
+	}
+	return fmt.Sprintf("Gemini API returned HTTP %d: %s", e.statusCode, e.message)
+}
+
+func (s *ReceiptScannerService) generateReceiptJSON(ctx context.Context, imageData []byte, mediaType, prompt string, legacySchema bool) (string, error) {
+	config := geminiGenerationConfig{MaxOutputTokens: 1024}
+	if legacySchema {
+		config.ResponseMIMEType = "application/json"
+		config.ResponseSchema = receiptSchema
+	} else {
+		config.ResponseFormat = &geminiResponseFormat{
+			Text: geminiResponseTextFormat{
+				MimeType: "application/json",
+				Schema:   receiptSchema,
+			},
+		}
+	}
+
+	payload := geminiGenerateRequest{
+		Contents: []geminiContent{
+			{
+				Parts: []geminiPart{
+					{
+						InlineData: &geminiInlineData{
+							MimeType: mediaType,
+							Data:     base64.StdEncoding.EncodeToString(imageData),
+						},
+					},
+					{Text: prompt},
+				},
+			},
+		},
+		GenerationConfig: config,
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	endpoint := fmt.Sprintf("%s/%s:generateContent", geminiGenerateBaseURL, url.PathEscape(normalizeGeminiModel(s.model)))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-goog-api-key", s.apiKey)
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		var apiErr geminiErrorResponse
+		_ = json.Unmarshal(responseBody, &apiErr)
+		return "", &geminiAPIError{statusCode: resp.StatusCode, message: apiErr.Error.Message}
+	}
+
+	var decoded geminiGenerateResponse
+	if err := json.Unmarshal(responseBody, &decoded); err != nil {
+		return "", fmt.Errorf("decode Gemini response: %w", err)
+	}
+	if decoded.PromptFeedback.BlockReason != "" {
+		return "", fmt.Errorf("%w: the image could not be processed", ErrValidation)
+	}
+	if len(decoded.Candidates) == 0 {
+		return "", fmt.Errorf("%w: no data could be read from the image", ErrValidation)
+	}
+	for _, part := range decoded.Candidates[0].Content.Parts {
+		if strings.TrimSpace(part.Text) != "" {
+			return part.Text, nil
+		}
+	}
+	return "", fmt.Errorf("%w: no data could be read from the image", ErrValidation)
+}
+
+func normalizeGeminiModel(model string) string {
+	model = strings.TrimSpace(model)
+	model = strings.TrimPrefix(model, "models/")
+	if model == "" {
+		return defaultGeminiReceiptModel
+	}
+	return model
+}
+
+func extractJSONObject(text string) string {
+	text = strings.TrimSpace(text)
+	text = strings.TrimPrefix(text, "```json")
+	text = strings.TrimPrefix(text, "```")
+	text = strings.TrimSuffix(text, "```")
+	text = strings.TrimSpace(text)
+	if strings.HasPrefix(text, "{") {
+		return text
+	}
+	start := strings.IndexByte(text, '{')
+	end := strings.LastIndexByte(text, '}')
+	if start >= 0 && end > start {
+		return text[start : end+1]
+	}
+	return text
 }

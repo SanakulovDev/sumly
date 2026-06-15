@@ -17,6 +17,7 @@
 | | Feature | Description |
 |---|---|---|
 | 📝 | **Fast entry** | Record an income or expense in seconds — one tap from anywhere |
+| 📷 | **Receipt scan** | Read a receipt photo with Gemini free-tier models, then review before saving |
 | 💳 | **Cash or card** | Mark a method as a card and capture the **last 4 digits** automatically |
 | 📊 | **Live dashboard** | Total balance + today's and this month's income / expense / net profit |
 | 🔍 | **Powerful filters** | By type, category, payment method and date range, with pagination |
@@ -49,6 +50,8 @@ docker compose up --build
 Register an account → default categories & payment methods are created for you → start tracking.
 Stop with `docker compose down` (add `-v` to also wipe the database).
 
+Receipt scanning is optional. Add `GEMINI_API_KEY` to `.env` to enable it; the default model is `gemini-3.5-flash`, which is available on Gemini API's free tier.
+
 ---
 
 ## 🧱 How it's put together
@@ -58,6 +61,7 @@ flowchart LR
     U["📱 Browser"] -->|"HTTPS"| F["🌐 Frontend<br/>nginx · React SPA<br/>:3000"]
     F -->|"/api/* proxy"| B["⚙️ Backend<br/>Go · Gin REST API<br/>:8080"]
     B -->|"GORM"| D["🗄️ PostgreSQL<br/>:5432"]
+    B -.->|"receipt scan"| G["Gemini API<br/>free-tier Flash model"]
 
     subgraph Docker["🐳 docker compose"]
         F
@@ -208,7 +212,7 @@ sumly/
 | Area | Endpoints |
 |---|---|
 | **Auth** | `POST /register` · `POST /login` · `GET /me` |
-| **Transactions** | `GET` · `POST` · `GET/PUT/DELETE /:id` · `GET /export` ⬇ |
+| **Transactions** | `GET` · `POST` · `POST /scan-receipt` · `GET/PUT/DELETE /:id` · `GET /export` ⬇ |
 | **Categories** | `GET` · `POST` · `PUT/DELETE /:id` |
 | **Payment methods** | `GET` · `POST` · `PUT/DELETE /:id` |
 | **Reports** | `GET /dashboard` · `GET /daily` · `GET /monthly` · `GET /monthly/export` ⬇ |
