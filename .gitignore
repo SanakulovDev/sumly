@@ -34,6 +34,7 @@ node_modules/
 
 # Frontend build output
 frontend/dist/
+frontend/dist-ssr/
 
 # Local env files (keep .env.example tracked)
 .env.local
