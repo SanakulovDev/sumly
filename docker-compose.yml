@@ -47,8 +47,21 @@ services:
       JWT_EXPIRES_HOURS: ${JWT_EXPIRES_HOURS:-72}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
+      # Local Ollama (voice parsing fallback + AI advisor). host.docker.internal
+      # reaches a model server running on the host machine.
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      # Larger model = noticeably better Uzbek/Russian advice (a bit slower).
+      # Use qwen2.5:3b for faster, lighter responses.
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:7b}
+      # Let the LLM phrase the advice (numbers are pre-computed, so they stay
+      # exact). Falls back to the deterministic advisor if the model is off or
+      # returns broken output. Set to false to always use the deterministic one.
+      OLLAMA_ADVISOR: ${OLLAMA_ADVISOR:-true}
       # The frontend is same-origin via nginx, so CORS is mostly a safety net.
       CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:3000}
+    extra_hosts:
+      # Lets the container resolve host.docker.internal on Linux too.
+      - "host.docker.internal:host-gateway"
     depends_on:
       db:
         condition: service_healthy

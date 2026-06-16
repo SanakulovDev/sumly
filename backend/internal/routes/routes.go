@@ -27,6 +27,7 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 
 	// Services (business logic).
 	currencyService := services.NewCurrencyService()
+	ollamaService := services.NewOllamaService(cfg.OllamaURL, cfg.OllamaModel)
 	mailer := services.NewMailer(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPassword, cfg.SMTPFrom)
 	authService := services.NewAuthService(db, userRepo, resetRepo, categoryRepo, paymentRepo, mailer, cfg.AppURL, cfg.JWTSecret, cfg.JWTExpiresIn)
 	categoryService := services.NewCategoryService(categoryRepo)
@@ -35,6 +36,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	reportService := services.NewReportService(transactionRepo)
 	exportService := services.NewExportService(transactionRepo)
 	scannerService := services.NewReceiptScannerService(categoryRepo, cfg.GeminiAPIKey, cfg.GeminiModel)
+	voiceService := services.NewVoiceService(categoryRepo, ollamaService)
+	insightsService := services.NewInsightsService(transactionRepo, ollamaService, cfg.OllamaAdvisor)
 
 	// Handlers (HTTP layer).
 	authHandler := handlers.NewAuthHandler(authService, cfg.AppEnv == "development")
@@ -45,6 +48,8 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 	exportHandler := handlers.NewExportHandler(exportService)
 	currencyHandler := handlers.NewCurrencyHandler(currencyService)
 	scanHandler := handlers.NewScanHandler(scannerService)
+	voiceHandler := handlers.NewVoiceHandler(voiceService)
+	insightsHandler := handlers.NewInsightsHandler(insightsService)
 
 	// Router.
 	if cfg.AppEnv != "development" {
@@ -113,6 +118,10 @@ func Setup(db *gorm.DB, cfg *config.Config) *gin.Engine {
 		}
 
 		protected.GET("/currency/rates", currencyHandler.Rates)
+		protected.POST("/voice/parse", voiceHandler.Parse)
+		protected.GET("/insights/advice", insightsHandler.Advice)
+		protected.GET("/insights/status", insightsHandler.Status)
+		protected.POST("/insights/ask", insightsHandler.Ask)
 
 		reports := protected.Group("/reports")
 		{

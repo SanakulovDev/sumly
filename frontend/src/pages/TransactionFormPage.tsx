@@ -6,6 +6,7 @@ import { paymentMethodsApi } from '../api/paymentMethods';
 import { getErrorMessage } from '../api/client';
 import { toast } from '../store/toastStore';
 import type { Category, Currency, PaymentMethod, TransactionPayload, TransactionType } from '../types';
+import { CURRENCIES } from '../types';
 import { PageLoader, Spinner } from '../components/Spinner';
 import { AmountField } from '../components/AmountField';
 import { CameraIcon, CardIcon } from '../components/icons';
@@ -125,6 +126,20 @@ export function TransactionFormPage() {
           setDescription(tx.description);
         } else {
           applyDefaults(initialType, cats, pms);
+
+          // Voice / quick-entry prefill via query params (amount, currency,
+          // category_id, description). Type comes from ?type= above.
+          const pAmount = searchParams.get('amount');
+          const pCurrency = searchParams.get('currency') as Currency | null;
+          const pCat = searchParams.get('category_id');
+          const pDesc = searchParams.get('description');
+          if (pAmount && Number(pAmount) > 0) setAmount(pAmount);
+          if (pCurrency && CURRENCIES.includes(pCurrency)) setCurrency(pCurrency);
+          if (pCat) {
+            const cid = Number(pCat);
+            if (cats.some((c) => c.id === cid && c.type === initialType)) setCategoryId(cid);
+          }
+          if (pDesc) setDescription(pDesc);
         }
       } catch (err) {
         if (active) setError(getErrorMessage(err));

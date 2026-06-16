@@ -103,6 +103,23 @@ export interface CurrencyRates {
   rates: Record<Currency, number>;
 }
 
+// Result of parsing a spoken sentence into a transaction draft.
+export interface VoiceParseResult {
+  type: TransactionType;
+  amount: number;
+  currency: Currency;
+  category_id: number;
+  description: string;
+  source: 'rules' | 'ai';
+  transcript: string;
+}
+
+// Result of the AI financial advisor.
+export interface AdviceResult {
+  advice: string;
+  generated: boolean;
+}
+
 export interface TransactionFilters {
   type?: TransactionType | '';
   category_id?: number | '';

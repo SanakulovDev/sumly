@@ -169,6 +169,51 @@ func (r *TransactionRepository) TotalsAll(userID uint) (Totals, error) {
 	return r.totals(r.db.Where("user_id = ?", userID))
 }
 
+// CategoryBreakdown is a single category's total (in base currency) within a
+// period, used to build the AI advisor's spending summary.
+type CategoryBreakdown struct {
+	CategoryName string
+	Total        float64
+}
+
+// DescriptionBreakdown is a single description's total and frequency, used to
+// surface recurring spending ("you spend most on …") in the advisor.
+type DescriptionBreakdown struct {
+	Description string
+	Total      float64
+	Count      int
+}
+
+// DescriptionTotals groups non-empty descriptions for the given type within
+// [from, to], largest total first. Useful for spotting recurring items.
+func (r *TransactionRepository) DescriptionTotals(userID uint, txType models.TransactionType, from, to time.Time, limit int) ([]DescriptionBreakdown, error) {
+	var rows []DescriptionBreakdown
+	err := r.db.Model(&models.Transaction{}).
+		Where("user_id = ? AND type = ? AND transaction_date >= ? AND transaction_date <= ? AND TRIM(description) <> ''",
+			userID, txType, from, to).
+		Select("description, COALESCE(SUM(amount_base), 0) AS total, COUNT(*) AS count").
+		Group("description").
+		Order("total DESC").
+		Limit(limit).
+		Scan(&rows).Error
+	return rows, err
+}
+
+// CategoryTotals returns per-category totals for the given transaction type
+// within the inclusive range [from, to], largest first.
+func (r *TransactionRepository) CategoryTotals(userID uint, txType models.TransactionType, from, to time.Time) ([]CategoryBreakdown, error) {
+	var rows []CategoryBreakdown
+	err := r.db.Model(&models.Transaction{}).
+		Joins("JOIN categories ON categories.id = transactions.category_id").
+		Where("transactions.user_id = ? AND transactions.type = ? AND transactions.transaction_date >= ? AND transactions.transaction_date <= ?",
+			userID, txType, from, to).
+		Select("categories.name AS category_name, COALESCE(SUM(transactions.amount_base), 0) AS total").
+		Group("categories.name").
+		Order("total DESC").
+		Scan(&rows).Error
+	return rows, err
+}
+
 // totals runs a single grouped aggregation and folds the rows into a Totals.
 func (r *TransactionRepository) totals(query *gorm.DB) (Totals, error) {
 	type row struct {

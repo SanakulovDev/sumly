@@ -8,6 +8,8 @@ import { SummaryCard } from '../components/SummaryCard';
 import { PageLoader } from '../components/Spinner';
 import { TransactionRow } from '../components/TransactionRow';
 import { ArrowDownIcon, ArrowUpIcon } from '../components/icons';
+import { VoiceButton } from '../components/VoiceButton';
+import { AdviceCard } from '../components/AdviceCard';
 import { formatMoney } from '../utils/format';
 import { useT } from '../i18n/useT';
 
@@ -87,6 +89,9 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* Voice entry — speak a transaction and confirm it on the next screen. */}
+      <VoiceButton className="w-full justify-center py-3 text-base" />
+
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">{t('dashboard.today')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
@@ -108,6 +113,9 @@ export function DashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* AI financial advisor (local Qwen, with a rule-based fallback). */}
+      <AdviceCard />
 
       <section>
         <div className="mb-2 flex items-center justify-between">

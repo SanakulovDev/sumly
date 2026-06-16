@@ -6,6 +6,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -42,6 +43,17 @@ type Config struct {
 	// Gemini API settings for the receipt scanner. An empty key disables it.
 	GeminiAPIKey string
 	GeminiModel  string
+
+	// Ollama settings for local LLM features (voice parsing fallback + the
+	// financial advisor). OllamaURL points at a running Ollama server; from a
+	// Docker container that is typically host.docker.internal. An empty URL
+	// disables the AI-backed paths (rule-based fallbacks still work).
+	OllamaURL   string
+	OllamaModel string
+	// OllamaAdvisor enables the LLM-written financial advice. Off by default
+	// because small models produce poor non-English prose; the deterministic
+	// advisor is used otherwise. Enable with a larger/multilingual model.
+	OllamaAdvisor bool
 }
 
 // Load reads configuration from the environment. It optionally loads a .env
@@ -81,7 +93,25 @@ func Load() *Config {
 
 		GeminiAPIKey: getEnv("GEMINI_API_KEY", ""),
 		GeminiModel:  getEnv("GEMINI_MODEL", "gemini-3.5-flash"),
+
+		OllamaURL:     getEnv("OLLAMA_URL", "http://host.docker.internal:11434"),
+		OllamaModel:   getEnv("OLLAMA_MODEL", "qwen2.5:3b"),
+		OllamaAdvisor: getEnvAsBool("OLLAMA_ADVISOR", true),
 	}
+}
+
+// getEnvAsBool returns a boolean environment variable or a fallback default.
+// Truthy values are "1", "true", "yes" (case-insensitive).
+func getEnvAsBool(key string, fallback bool) bool {
+	if value, ok := os.LookupEnv(key); ok && value != "" {
+		switch strings.ToLower(strings.TrimSpace(value)) {
+		case "1", "true", "yes", "on":
+			return true
+		case "0", "false", "no", "off":
+			return false
+		}
+	}
+	return fallback
 }
 
 // DSN builds the PostgreSQL connection string from the configuration.
