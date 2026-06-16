@@ -50,9 +50,9 @@ services:
       # Local Ollama (voice parsing fallback + AI advisor). host.docker.internal
       # reaches a model server running on the host machine.
       OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
-      # Larger model = noticeably better Uzbek/Russian advice (a bit slower).
-      # Use qwen2.5:3b for faster, lighter responses.
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:7b}
+      # General 7B instruct model — best Uzbek/Russian advice quality.
+      # Use qwen2.5:3b for faster, lighter (but rougher) responses.
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
       # Let the LLM phrase the advice (numbers are pre-computed, so they stay
       # exact). Falls back to the deterministic advisor if the model is off or
       # returns broken output. Set to false to always use the deterministic one.

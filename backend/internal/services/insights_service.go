@@ -79,7 +79,8 @@ func (s *InsightsService) Ask(ctx context.Context, userID uint, question, lang s
 		"1. Use ONLY the FINANCE DATA below; it belongs to the logged-in user. You may calculate from it (daily, monthly, yearly rates).\n" +
 		"2. You CAN answer anything about this user's money: balance, income, expenses, savings, budgeting, whether they can afford something, spending habits, projections, or how the Sumly app works.\n" +
 		"3. ONLY if the question is clearly unrelated to money or Sumly (for example geography, history, jokes, science, programming, news), do NOT answer it — reply with EXACTLY this sentence and nothing else: \"" + refusal + "\"\n" +
-		"4. Never invent numbers not in the data. Be concise. Reply only in " + langName + "."
+		"4. Never invent numbers not in the data. When stating an amount, write the full integer (you may group thousands with spaces); never round, abbreviate, or add a decimal point.\n" +
+		"5. Be concise. Reply only in " + langName + "."
 
 	prompt := fmt.Sprintf("FINANCE DATA (logged-in user, amounts in so'm / UZS):\n%s\nQuestion: %s", dataCtx, question)
 
